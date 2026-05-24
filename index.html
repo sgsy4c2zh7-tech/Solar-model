@@ -3,301 +3,177 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Advanced SRS Solar Operations Console</title>
-
+<title>SRS Sunspot Rotation Viewer</title>
 <style>
 :root{
-  --bg:#06070b;
-  --panel:#111622;
-  --panel2:#171d2c;
-  --line:#2b3448;
-  --text:#eef3ff;
-  --muted:#9aa6c0;
+  --bg:#07080d;
+  --panel:#141722;
+  --panel2:#10131d;
+  --line:#2b3142;
+  --text:#f3f5fb;
+  --muted:#aab2c5;
   --accent:#4fc3f7;
-
-  --risk-low:#8bc34a;
-  --risk-mid:#ffee58;
-  --risk-high:#ff9800;
-  --risk-severe:#ff1744;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
-  background:
-    radial-gradient(circle at top,#1b2236 0%,#06070b 62%);
+  background:radial-gradient(circle at top,#15192a 0,#07080d 58%);
   color:var(--text);
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
-
 header{
+  padding:14px 18px;
+  border-bottom:1px solid var(--line);
+  background:rgba(10,12,20,.92);
   position:sticky;
   top:0;
-  z-index:20;
-  background:rgba(10,12,20,.92);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--line);
-  padding:14px 18px;
+  z-index:10;
+  backdrop-filter:blur(10px);
 }
-
-h1{
-  margin:0 0 10px;
-  font-size:22px;
-}
-
+h1{font-size:20px;margin:0 0 8px}
+h2,h3{margin:0 0 10px}
 button,input,select{
   font:inherit;
 }
-
 button{
+  padding:9px 13px;
   border:0;
   border-radius:10px;
-  padding:10px 14px;
-  cursor:pointer;
   font-weight:800;
-  color:#fff;
+  cursor:pointer;
   background:#263248;
+  color:#fff;
 }
-
-button:hover{
-  filter:brightness(1.12);
-}
-
-button.primary{
-  background:#0277bd;
-}
-
-button.red{
-  background:#8e2430;
-}
-
+button.primary{background:#0277bd}
+button.danger{background:#8e2430}
+button:hover{filter:brightness(1.12)}
+main{padding:14px}
 .topbar{
   display:flex;
   flex-wrap:wrap;
   gap:8px;
   align-items:center;
 }
-
 .status{
   font-size:13px;
   color:var(--muted);
 }
-
-main{
-  padding:14px;
-}
-
-.layout{
+.grid{
   display:grid;
-  grid-template-columns:minmax(420px,1.45fr) minmax(350px,.9fr);
+  grid-template-columns:minmax(420px,1.35fr) minmax(330px,.9fr);
   gap:14px;
 }
-
 .card{
-  background:
-    linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
   border:1px solid var(--line);
-  border-radius:18px;
+  border-radius:16px;
   padding:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.28);
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
 }
-
-.sunWrap{
+.sunbox{
   position:relative;
   width:100%;
   aspect-ratio:1/1;
+  min-height:420px;
   background:#000;
-  border-radius:18px;
+  border-radius:16px;
   overflow:hidden;
-  border:1px solid #2a3347;
+  border:1px solid #293044;
 }
-
 canvas{
   position:absolute;
   inset:0;
   width:100%;
   height:100%;
 }
-
-.overlay{
+.overlayTime{
   position:absolute;
-  left:12px;
-  top:12px;
-  z-index:2;
-
-  background:rgba(5,7,12,.72);
-  border:1px solid rgba(255,255,255,.14);
-  border-radius:12px;
-
+  left:14px;
+  top:14px;
   padding:10px 12px;
+  border-radius:12px;
+  background:rgba(5,7,12,.72);
+  border:1px solid rgba(255,255,255,.16);
+  font-weight:800;
   line-height:1.45;
+  pointer-events:none;
 }
-
-.overlay .big{
-  font-size:18px;
-  font-weight:900;
-}
-
-.overlay .small{
-  font-size:12px;
-  color:#c4cee3;
-}
-
-.sliderBox{
+.overlayTime .big{font-size:18px;color:#fff}
+.overlayTime .small{font-size:12px;color:#c7d0e5}
+.controls{
+  display:grid;
+  gap:10px;
   margin-top:12px;
 }
-
 .sliderRow{
   display:grid;
   grid-template-columns:auto 1fr auto;
   gap:10px;
   align-items:center;
 }
-
-input[type=range]{
-  width:100%;
-}
-
+input[type=range]{width:100%}
 .small{
   font-size:13px;
   color:var(--muted);
-  line-height:1.5;
+  line-height:1.55;
 }
-
 .kpis{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(3,1fr);
   gap:8px;
-  margin-top:10px;
+  margin:10px 0;
 }
-
 .kpi{
-  background:rgba(255,255,255,.04);
+  background:rgba(255,255,255,.045);
   border:1px solid var(--line);
   border-radius:12px;
   padding:10px;
 }
-
-.kpi .label{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.kpi .value{
-  font-size:22px;
-  font-weight:900;
-}
-
-.sideGrid{
+.kpi .label{font-size:12px;color:var(--muted)}
+.kpi .value{font-size:20px;font-weight:900}
+.colorGrid{
   display:grid;
-  gap:14px;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
 }
-
-.flareCard{
-  background:
-    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+.colorItem{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  background:rgba(255,255,255,.035);
   border:1px solid var(--line);
-  border-radius:14px;
-  padding:10px;
-}
-
-.flareNow{
-  border-left:5px solid #ff1744;
-}
-
-.flareM{
-  border-left:5px solid #ff9800;
-}
-
-.flareC{
-  border-left:5px solid #ffee58;
-}
-
-.flareB{
-  border-left:5px solid #90a4ae;
-}
-
-.flareTitle{
-  font-size:16px;
-  font-weight:900;
-}
-
-.timeline{
-  margin-top:10px;
-  height:42px;
   border-radius:10px;
-  position:relative;
-  overflow:hidden;
-  background:#0d111a;
-  border:1px solid var(--line);
+  padding:8px;
+  font-size:13px;
 }
-
-.tick{
-  position:absolute;
-  top:0;
-  bottom:0;
-  width:2px;
-  background:#263248;
-}
-
-.nowLine{
-  position:absolute;
-  top:0;
-  bottom:0;
-  width:3px;
-  background:#4fc3f7;
-}
-
-.event{
-  position:absolute;
-  top:7px;
-  width:12px;
-  height:12px;
-  border-radius:50%;
-  transform:translateX(-50%);
-}
-
-.event.X{background:#ff1744}
-.event.M{background:#ff9800}
-.event.C{background:#ffee58}
-.event.B{background:#90a4ae}
-
-.tableWrap{
-  max-height:420px;
-  overflow:auto;
-  border:1px solid var(--line);
-  border-radius:12px;
-}
-
+.colorItem input{width:44px;height:30px;border:0;background:transparent}
 table{
   width:100%;
   border-collapse:collapse;
   font-size:13px;
 }
-
 th,td{
-  border-bottom:1px solid #2c3448;
+  border-bottom:1px solid #293044;
   padding:7px 6px;
   text-align:left;
   white-space:nowrap;
 }
-
 th{
-  background:#111827;
+  color:#cdd7ee;
+  background:#101522;
   position:sticky;
   top:0;
 }
-
-tr:hover{
-  background:rgba(79,195,247,.08);
-  cursor:pointer;
+tr{cursor:pointer}
+tr:hover{background:rgba(79,195,247,.08)}
+tr.selected{background:rgba(79,195,247,.18)}
+.tableWrap{
+  max-height:410px;
+  overflow:auto;
+  border:1px solid var(--line);
+  border-radius:12px;
 }
-
-tr.selected{
-  background:rgba(79,195,247,.16);
-}
-
 .badge{
   display:inline-block;
   padding:2px 7px;
@@ -305,1084 +181,341 @@ tr.selected{
   font-weight:900;
   color:#050505;
 }
-
+.detail{
+  display:grid;
+  gap:8px;
+}
 .detailBox{
   background:rgba(255,255,255,.04);
   border:1px solid var(--line);
   border-radius:12px;
   padding:10px;
 }
-
-.colorGrid{
+.legend{
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+  margin-top:8px;
 }
-
-.colorItem{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-
-  background:rgba(255,255,255,.035);
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:8px;
-  font-size:13px;
+.legend div{
+  border-radius:999px;
+  padding:5px 7px;
+  text-align:center;
+  font-size:12px;
+  font-weight:800;
+  color:#050505;
 }
-
-.colorItem input{
-  width:42px;
-  height:30px;
-  border:0;
-  background:transparent;
-}
-
 pre{
   white-space:pre-wrap;
-  background:#05070c;
+  max-height:330px;
+  overflow:auto;
+  background:#05070b;
   border:1px solid var(--line);
   border-radius:12px;
   padding:10px;
-  max-height:320px;
-  overflow:auto;
+  color:#d7def0;
 }
-
-@media(max-width:980px){
-  .layout{
-    grid-template-columns:1fr;
-  }
-  .kpis{
-    grid-template-columns:1fr 1fr;
-  }
+@media(max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .sunbox{min-height:360px}
+  .kpis{grid-template-columns:1fr}
 }
 </style>
 </head>
-
 <body>
 
 <header>
-  <h1>Advanced SRS Solar Operations Console</h1>
-
+  <h1>SRS Sunspot Rotation Viewer</h1>
   <div class="topbar">
-    <button class="primary" onclick="initialize()">最新データ取得</button>
+    <button class="primary" onclick="loadLatestSRS()">最新SRSを取得</button>
     <button id="playBtn" onclick="togglePlay()">▶ 再生</button>
-    <button onclick="resetTime()">基準へ戻す</button>
-    <button onclick="savePNG()">PNG保存</button>
-
-    <span id="status" class="status">未取得</span>
+    <button onclick="resetSlider()">基準時刻へ戻す</button>
+    <button onclick="savePng()">PNG保存</button>
+    <span id="fetchStatus" class="status">未取得</span>
   </div>
 </header>
 
 <main>
+  <div class="grid">
+    <section class="card">
+      <h2>太陽面回転ビュー</h2>
+      <div class="sunbox">
+        <canvas id="sunCanvas"></canvas>
+        <div class="overlayTime">
+          <div class="big" id="mainTime">---</div>
+          <div class="small" id="subTime">SRS未取得</div>
+        </div>
+      </div>
 
-<div class="layout">
+      <div class="controls">
+        <div class="sliderRow">
+          <span class="small">-7日</span>
+          <input id="timeSlider" type="range" min="-336" max="336" step="1" value="0" oninput="onSliderInput()">
+          <span class="small">+7日</span>
+        </div>
+        <div class="small" id="sliderInfo">30分刻み。基準はSRSの Locations Valid at。</div>
 
-<section class="card">
+        <div class="kpis">
+          <div class="kpi"><div class="label">表示中AR</div><div class="value" id="kpiVisible">0</div></div>
+          <div class="kpi"><div class="label">裏側・端外</div><div class="value" id="kpiHidden">0</div></div>
+          <div class="kpi"><div class="label">最大Risk</div><div class="value" id="kpiRisk">0</div></div>
+        </div>
+      </div>
+    </section>
 
-<h2>Solar Disk</h2>
+    <aside class="card">
+      <h2>表示設定</h2>
+      <div class="colorGrid">
+        <label class="colorItem">低Risk <input id="colorLow" type="color" value="#9ccc65" oninput="redraw()"></label>
+        <label class="colorItem">注意Risk <input id="colorMid" type="color" value="#ffee58" oninput="redraw()"></label>
+        <label class="colorItem">中Risk <input id="colorHigh" type="color" value="#ff9100" oninput="redraw()"></label>
+        <label class="colorItem">高Risk <input id="colorSevere" type="color" value="#ff1744" oninput="redraw()"></label>
+        <label class="colorItem">ARラベル <input id="colorLabel" type="color" value="#ffffff" oninput="redraw()"></label>
+        <label class="colorItem">グリッド <input id="colorGrid" type="color" value="#ffffff" oninput="redraw()"></label>
+        <label class="colorItem">磁場＋ <input id="colorPlus" type="color" value="#ff5252" oninput="redraw()"></label>
+        <label class="colorItem">磁場− <input id="colorMinus" type="color" value="#40c4ff" oninput="redraw()"></label>
+      </div>
 
-<div class="sunWrap">
-  <canvas id="sunCanvas"></canvas>
+      <div style="margin-top:10px" class="small">
+        <label><input id="showGrid" type="checkbox" checked onchange="redraw()"> 緯度・経度グリッド</label><br>
+        <label><input id="showLabels" type="checkbox" checked onchange="redraw()"> AR番号・Risk表示</label><br>
+        <label><input id="showMagnetic" type="checkbox" checked onchange="redraw()"> 磁場構造表示</label><br>
+        <label><input id="hideBackside" type="checkbox" checked onchange="redraw()"> 裏側のARを非表示</label>
+      </div>
 
-  <div class="overlay">
-    <div class="big" id="timeUTC">---</div>
-    <div class="small" id="timeInfo">---</div>
+      <div class="legend">
+        <div id="legLow">Low</div>
+        <div id="legMid">Watch</div>
+        <div id="legHigh">Medium</div>
+        <div id="legSevere">High</div>
+      </div>
+
+      <h3 style="margin-top:16px">選択中AR</h3>
+      <div id="detail" class="detail small">ARをクリックしてください。</div>
+    </aside>
   </div>
-</div>
 
-<div class="sliderBox">
+  <section class="card" style="margin-top:14px">
+    <h2>AR一覧</h2>
+    <div id="table" class="tableWrap"></div>
+  </section>
 
-<div class="sliderRow">
-  <span class="small">-7日</span>
-
-  <input
-    id="timeSlider"
-    type="range"
-    min="-336"
-    max="336"
-    step="1"
-    value="0"
-    oninput="redraw()"
-  />
-
-  <span class="small">+7日</span>
-</div>
-
-<div class="small">
-過去側：実測SRS / 未来側：回転予測（30分刻み）
-</div>
-
-<div class="timeline" id="timeline"></div>
-
-<div class="kpis">
-  <div class="kpi">
-    <div class="label">Visible AR</div>
-    <div class="value" id="kpiVisible">0</div>
-  </div>
-
-  <div class="kpi">
-    <div class="label">Hidden</div>
-    <div class="value" id="kpiHidden">0</div>
-  </div>
-
-  <div class="kpi">
-    <div class="label">Max Risk</div>
-    <div class="value" id="kpiRisk">0</div>
-  </div>
-
-  <div class="kpi">
-    <div class="label">Flare NOW</div>
-    <div class="value" id="kpiFlare">-</div>
-  </div>
-</div>
-
-</div>
-</section>
-
-<aside class="sideGrid">
-
-<section class="card">
-
-<h2>Current / Recent Flares</h2>
-
-<div id="flareList" class="small">
-未取得
-</div>
-
-</section>
-
-<section class="card">
-
-<h2>Selected AR</h2>
-
-<div id="detail" class="small">
-ARをクリックしてください
-</div>
-
-</section>
-
-<section class="card">
-
-<h2>Color Settings</h2>
-
-<div class="colorGrid">
-
-<label class="colorItem">
-Low
-<input id="riskLow" type="color" value="#8bc34a" oninput="redraw()">
-</label>
-
-<label class="colorItem">
-Watch
-<input id="riskMid" type="color" value="#ffee58" oninput="redraw()">
-</label>
-
-<label class="colorItem">
-Medium
-<input id="riskHigh" type="color" value="#ff9800" oninput="redraw()">
-</label>
-
-<label class="colorItem">
-High
-<input id="riskSevere" type="color" value="#ff1744" oninput="redraw()">
-</label>
-
-</div>
-
-<div style="margin-top:10px" class="small">
-<label><input id="showGrid" type="checkbox" checked onchange="redraw()"> Grid</label><br>
-<label><input id="showLabels" type="checkbox" checked onchange="redraw()"> Labels</label><br>
-<label><input id="showMag" type="checkbox" checked onchange="redraw()"> Magnetic Structure</label><br>
-<label><input id="hideBack" type="checkbox" checked onchange="redraw()"> Hide Backside</label>
-</div>
-
-</section>
-
-</aside>
-
-</div>
-
-<section class="card" style="margin-top:14px">
-
-<h2>AR Table</h2>
-
-<div class="tableWrap">
-<table>
-<thead>
-<tr>
-<th>AR</th>
-<th>磁場</th>
-<th>Area</th>
-<th>NN</th>
-<th>Risk</th>
-<th>Lon</th>
-</tr>
-</thead>
-
-<tbody id="tableBody"></tbody>
-</table>
-</div>
-
-</section>
-
-<section class="card" style="margin-top:14px">
-
-<h2>Raw SRS</h2>
-
-<pre id="raw">未取得</pre>
-
-</section>
-
+  <section class="card" style="margin-top:14px">
+    <h2>SRS Raw Text</h2>
+    <pre id="raw">未取得</pre>
+  </section>
 </main>
 
 <script>
+const SRS_URL = "https://services.swpc.noaa.gov/text/srs.txt";
 
-const CURRENT_SRS =
-"https://services.swpc.noaa.gov/text/srs.txt";
-
-const GOES_FLARE =
-"https://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json";
-
+// 見かけ上の太陽自転。黒点は時間が進むと東から西へ進むので、表示経度を増やす。
 const SOLAR_ROT_DEG_PER_DAY = 13.2;
 
 let state = {
-  srsHistory:{},
-  latest:null,
-  flares:[],
+  srs:null,
   selectedAR:null,
   playing:false,
   timer:null
 };
 
-function $(id){
-  return document.getElementById(id);
-}
+function $(id){ return document.getElementById(id); }
 
-async function initialize(){
-
-  $("status").textContent = "取得中...";
-
+async function loadLatestSRS(){
+  $("fetchStatus").textContent = "取得中...";
   try{
+    const res = await fetch(SRS_URL + "?t=" + Date.now(), {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
 
-    await Promise.all([
-      loadSRSHistory(),
-      loadFlares()
-    ]);
+    const text = await res.text();
+    $("raw").textContent = text;
 
+    const srs = parseSRS(text);
+    state.srs = srs;
+    state.selectedAR = srs.regions[0]?.number || null;
+
+    $("timeSlider").value = 0;
+    renderTable();
     redraw();
-    renderTimeline();
 
-    $("status").textContent =
-      "取得完了";
-
+    $("fetchStatus").textContent =
+      `取得成功 / AR ${srs.regions.length}件 / Valid: ${srs.validRaw || "不明"}`;
   }catch(e){
-
-    $("status").textContent =
-      "取得失敗: " + e.message;
-  }
-}
-
-async function loadSRSHistory(){
-
-  const today = new Date();
-
-  const jobs = [];
-
-  for(let i=-7;i<=0;i++){
-
-    const d = new Date(today);
-    d.setUTCDate(today.getUTCDate()+i);
-
-    const y = d.getUTCFullYear();
-    const m = pad(d.getUTCMonth()+1);
-    const dd = pad(d.getUTCDate());
-
-    const url =
-`https://services.swpc.noaa.gov/text/solar_regions/${y}/${m}/SRS_${y}${m}${dd}.txt`;
-
-    jobs.push(
-      fetch(url)
-        .then(r=>r.ok ? r.text() : null)
-        .then(text=>{
-          if(!text) return;
-
-          const parsed = parseSRS(text);
-
-          const key =
-            dateKey(parsed.validDate);
-
-          state.srsHistory[key] = parsed;
-
-          state.latest = parsed;
-        })
-        .catch(()=>{})
-    );
-  }
-
-  await Promise.all(jobs);
-
-  if(state.latest){
-    $("raw").textContent =
-      state.latest.raw;
-  }
-}
-
-async function loadFlares(){
-
-  try{
-
-    const res = await fetch(
-      GOES_FLARE + "?t=" + Date.now()
-    );
-
-    const json = await res.json();
-
-    state.flares =
-      json
-        .filter(x=>x.energy)
-        .slice(-60);
-
-  }catch(e){
-
-    console.warn(e);
+    $("fetchStatus").textContent = "取得失敗";
+    $("raw").textContent = "取得失敗: " + e.message;
   }
 }
 
 function parseSRS(text){
+  const lines = text.split(/\r?\n/);
 
-  const lines =
-    text.split(/\r?\n/);
+  const issuedRaw = (text.match(/:Issued:\s*(.+)/) || [])[1]?.trim() || "";
+  const validRaw =
+    (text.match(/Locations Valid at\s*(.+)/i) || [])[1]?.trim() ||
+    (text.match(/Valid at\s*(.+)/i) || [])[1]?.trim() ||
+    "";
 
-  const issued =
-    (text.match(/:Issued:\s*(.+)/)||[])[1] || "";
-
-  const valid =
-    (text.match(/Locations Valid at\s*(.+)/i)||[])[1] || "";
-
-  const validDate =
-    parseNOAADate(valid) ||
-    new Date();
+  const issuedDate = parseNOAADate(issuedRaw);
+  const validDate = parseNOAADate(validRaw) || issuedDate || new Date();
 
   let inSection = false;
-
   const regions = [];
 
   for(const line of lines){
-
     if(line.startsWith("I.  Regions with Sunspots")){
       inSection = true;
       continue;
     }
-
     if(inSection && line.startsWith("IA.")) break;
     if(!inSection) continue;
 
-    const m =
-      line.trim().match(
-/^(\d{4})\s+([NS]\d{2}[EW]\d{2})\s+(\d+)\s+(\d+)\s+([A-Za-z]+)\s+(\d+)\s+(\d+)\s+(.+)$/
-      );
+    const m = line.trim().match(
+      /^(\d{4})\s+([NS]\d{2}[EW]\d{2})\s+(\d+)\s+(\d+)\s+([A-Za-z]+)\s+(\d+)\s+(\d+)\s+(.+)$/
+    );
 
     if(!m) continue;
 
-    const [
-      ,
-      number,
-      location,
-      lo,
-      area,
-      z,
-      ll,
-      nn,
-      magType
-    ] = m;
-
-    const pos =
-      parseLocation(location);
+    const [, number, location, lo, area, z, ll, nn, magType] = m;
+    const pos = parseLocation(location);
 
     regions.push({
       number,
       location,
       lat:pos.lat,
       lon:pos.lon,
+      lo:Number(lo),
       area:Number(area),
-      spots:Number(nn),
-      length:Number(ll),
       mcintosh:z,
+      length:Number(ll),
+      spots:Number(nn),
       magType:magType.trim(),
-      risk:calcRisk(
-        Number(area),
-        Number(nn),
-        z,
-        magType.trim()
-      )
+      risk:calcRisk(Number(area), Number(nn), z, magType.trim())
     });
   }
 
   return {
-    issued,
-    valid,
+    issuedRaw,
+    validRaw,
+    issuedDate,
     validDate,
-    regions,
-    raw:text
+    regions
   };
 }
 
 function parseNOAADate(s){
-
   if(!s) return null;
 
-  const cleaned =
-    s.replace(/UTC/i,"").trim();
+  // 例: "2026 May 25 0030 UTC"
+  let cleaned = s
+    .replace(/UTC/i,"")
+    .replace(/Z$/i,"")
+    .replace(/\.$/,"")
+    .trim();
 
-  const d =
-    new Date(cleaned + " UTC");
-
+  let d = new Date(cleaned + " UTC");
   if(!isNaN(d)) return d;
 
+  const m = cleaned.match(/(\d{4})\s+([A-Za-z]{3,9})\s+(\d{1,2})\s+(\d{2})(\d{2})/);
+  if(m){
+    const months = {
+      Jan:0,January:0,Feb:1,February:1,Mar:2,March:2,Apr:3,April:3,
+      May:4,Jun:5,June:5,Jul:6,July:6,Aug:7,August:7,Sep:8,Sept:8,September:8,
+      Oct:9,October:9,Nov:10,November:10,Dec:11,December:11
+    };
+    const y = Number(m[1]);
+    const mo = months[m[2]];
+    const day = Number(m[3]);
+    const hh = Number(m[4]);
+    const mm = Number(m[5]);
+    if(mo !== undefined) return new Date(Date.UTC(y,mo,day,hh,mm,0));
+  }
   return null;
 }
 
 function parseLocation(loc){
-
-  const m =
-    loc.match(
-      /^([NS])(\d{2})([EW])(\d{2})$/
-    );
-
+  const m = loc.match(/^([NS])(\d{2})([EW])(\d{2})$/);
   if(!m) return {lat:0, lon:0};
 
-  const lat =
-    (m[1]==="N"?1:-1) * Number(m[2]);
+  const lat = (m[1] === "N" ? 1 : -1) * Number(m[2]);
 
-  const lon =
-    (m[3]==="W"?1:-1) * Number(m[4]);
+  // 描画座標では Wを右、Eを左にする。W=+, E=-
+  const lon = (m[3] === "W" ? 1 : -1) * Number(m[4]);
 
   return {lat, lon};
 }
 
-function calcRisk(area,spots,mcintosh,mag){
-
+function calcRisk(area, spots, mcintosh, magType){
   let score = 0;
 
-  score += Math.min(30, area/10);
-  score += Math.min(20, spots*2);
+  score += Math.min(30, area / 10);
+  score += Math.min(20, spots * 2);
 
-  const m = mag.toLowerCase();
+  const mag = magType.toLowerCase();
+  if(mag.includes("alpha")) score += 5;
+  if(mag.includes("beta")) score += 15;
+  if(mag.includes("gamma")) score += 25;
+  if(mag.includes("delta")) score += 35;
 
-  if(m.includes("alpha")) score += 5;
-  if(m.includes("beta")) score += 15;
-  if(m.includes("gamma")) score += 25;
-  if(m.includes("delta")) score += 35;
+  const z = mcintosh.toUpperCase();
+  if(z.startsWith("D")) score += 8;
+  if(z.startsWith("E")) score += 14;
+  if(z.startsWith("F")) score += 20;
+  if(z.includes("K")) score += 8;
 
   return Math.min(100, Math.round(score));
 }
 
-function getCurrentDate(){
-
-  if(!state.latest)
-    return new Date();
-
-  const halfHours =
-    Number($("timeSlider").value);
-
-  return new Date(
-    state.latest.validDate.getTime()
-    +
-    halfHours * 30 * 60 * 1000
-  );
+function getSliderDate(){
+  if(!state.srs) return new Date();
+  const halfHours = Number($("timeSlider").value);
+  return new Date(state.srs.validDate.getTime() + halfHours * 30 * 60 * 1000);
 }
 
-function getDataset(){
-
-  if(!state.latest)
-    return null;
-
-  const slider =
-    Number($("timeSlider").value);
-
-  const currentDate =
-    getCurrentDate();
-
-  // 過去側：実測
-  if(slider <= 0){
-
-    const key =
-      dateKey(currentDate);
-
-    if(state.srsHistory[key])
-      return {
-        mode:"observed",
-        data:state.srsHistory[key]
-      };
-  }
-
-  // 未来側：予測
-  return {
-    mode:"forecast",
-    data:state.latest
-  };
+function getDeltaDays(){
+  if(!state.srs) return 0;
+  return (getSliderDate() - state.srs.validDate) / 86400000;
 }
 
-function redraw(){
-
-  updateTimeLabel();
-
-  const dataset =
-    getDataset();
-
-  if(!dataset) return;
-
-  renderSolarDisk(dataset);
-  renderTable(dataset);
-  renderDetail(dataset);
-  renderFlarePanel();
+function onSliderInput(){
+  redraw();
 }
 
-function renderSolarDisk(dataset){
-
-  const {
-    ctx,
-    w,
-    h,
-    cx,
-    cy,
-    r
-  } = setupCanvas();
-
-  ctx.clearRect(0,0,w,h);
-
-  drawBackground(ctx,w,h,cx,cy,r);
-
-  if($("showGrid").checked)
-    drawGrid(ctx,cx,cy,r);
-
-  const visible = [];
-  let hidden = 0;
-
-  dataset.data.regions.forEach(ar=>{
-
-    const lon =
-      dataset.mode==="forecast"
-      ?
-      normalize180(
-        ar.lon
-        +
-        getDeltaDays() *
-        SOLAR_ROT_DEG_PER_DAY
-      )
-      :
-      ar.lon;
-
-    const p =
-      project(
-        ar.lat,
-        lon,
-        cx,
-        cy,
-        r
-      );
-
-    if($("hideBack").checked && p.z < 0){
-      hidden++;
-      return;
-    }
-
-    visible.push(ar);
-
-    drawAR(
-      ctx,
-      ar,
-      p,
-      lon
-    );
-  });
-
-  $("kpiVisible").textContent =
-    visible.length;
-
-  $("kpiHidden").textContent =
-    hidden;
-
-  $("kpiRisk").textContent =
-    Math.max(
-      ...dataset.data.regions.map(r=>r.risk)
-    );
+function resetSlider(){
+  $("timeSlider").value = 0;
+  redraw();
 }
 
-function drawAR(ctx,ar,p,lon){
+function togglePlay(){
+  state.playing = !state.playing;
+  $("playBtn").textContent = state.playing ? "⏸ 停止" : "▶ 再生";
 
-  const color =
-    riskColor(ar.risk);
-
-  const size =
-    Math.max(
-      6,
-      Math.min(
-        28,
-        Math.sqrt(ar.area)*0.78
-      )
-    );
-
-  const selected =
-    state.selectedAR===ar.number;
-
-  ctx.save();
-
-  ctx.globalAlpha =
-    Math.max(.35,p.z);
-
-  // glow
-  ctx.beginPath();
-  ctx.arc(
-    p.x,
-    p.y,
-    size + (selected?18:10),
-    0,
-    Math.PI*2
-  );
-
-  ctx.fillStyle =
-    hexToRgba(
-      color,
-      selected?.42:.22
-    );
-
-  ctx.fill();
-
-  // main
-  ctx.beginPath();
-
-  ctx.arc(
-    p.x,
-    p.y,
-    size,
-    0,
-    Math.PI*2
-  );
-
-  ctx.fillStyle="#000";
-  ctx.fill();
-
-  ctx.strokeStyle=color;
-  ctx.lineWidth=2;
-  ctx.stroke();
-
-  // label
-  if($("showLabels").checked){
-
-    ctx.fillStyle="#fff";
-
-    ctx.font =
-      selected
-      ?
-      "900 13px system-ui"
-      :
-      "700 12px system-ui";
-
-    ctx.fillText(
-      "AR"+ar.number,
-      p.x+size+10,
-      p.y-18
-    );
-
-    // magnetic label
-    ctx.fillStyle =
-      magneticColor(ar.magType);
-
-    ctx.font =
-      "900 16px system-ui";
-
-    ctx.fillText(
-      magneticShort(ar.magType),
-      p.x+size+10,
-      p.y
-    );
-
-    ctx.fillStyle=color;
-
-    ctx.font =
-      "800 12px system-ui";
-
-    ctx.fillText(
-      "R"+ar.risk,
-      p.x+size+10,
-      p.y+16
-    );
+  if(state.playing){
+    state.timer = setInterval(()=>{
+      let v = Number($("timeSlider").value);
+      v++;
+      if(v > Number($("timeSlider").max)) v = Number($("timeSlider").min);
+      $("timeSlider").value = v;
+      redraw();
+    }, 180);
+  }else{
+    clearInterval(state.timer);
+    state.timer = null;
   }
-
-  if($("showMag").checked){
-
-    drawMagneticFX(
-      ctx,
-      ar,
-      p,
-      size
-    );
-  }
-
-  // flare highlight
-  const flare =
-    latestFlareForAR(ar.number);
-
-  if(flare){
-
-    ctx.strokeStyle =
-      flareColor(flare.class);
-
-    ctx.lineWidth=3;
-
-    ctx.beginPath();
-
-    ctx.arc(
-      p.x,
-      p.y,
-      size+9,
-      0,
-      Math.PI*2
-    );
-
-    ctx.stroke();
-
-    ctx.fillStyle =
-      flareColor(flare.class);
-
-    ctx.font =
-      "900 13px system-ui";
-
-    ctx.fillText(
-      flare.class,
-      p.x-size,
-      p.y-size-8
-    );
-  }
-
-  ctx.restore();
-}
-
-function drawMagneticFX(ctx,ar,p,size){
-
-  const m =
-    ar.magType.toLowerCase();
-
-  if(m.includes("gamma")){
-
-    ctx.strokeStyle =
-      "rgba(255,255,255,.7)";
-
-    ctx.lineWidth=1.3;
-
-    for(let i=0;i<3;i++){
-
-      ctx.beginPath();
-
-      const yy =
-        p.y-size*.5+i*size*.45;
-
-      ctx.moveTo(
-        p.x-size*.9,
-        yy
-      );
-
-      ctx.bezierCurveTo(
-        p.x-size*.2,
-        yy-size*.5,
-        p.x+size*.2,
-        yy+size*.5,
-        p.x+size*.9,
-        yy
-      );
-
-      ctx.stroke();
-    }
-  }
-
-  if(m.includes("delta")){
-
-    ctx.strokeStyle="#ff1744";
-
-    ctx.lineWidth=2.5;
-
-    ctx.beginPath();
-
-    ctx.arc(
-      p.x,
-      p.y,
-      size*1.45,
-      0,
-      Math.PI*2
-    );
-
-    ctx.stroke();
-  }
-}
-
-function renderFlarePanel(){
-
-  if(!state.flares.length){
-
-    $("flareList").textContent =
-      "フレアデータなし";
-
-    return;
-  }
-
-  const recent =
-    state.flares.slice(-10).reverse();
-
-  $("flareList").innerHTML =
-    recent.map(f=>{
-
-      const cls =
-        flareCssClass(f.energy);
-
-      return `
-<div class="flareCard ${cls}">
-<div class="flareTitle">
-${f.energy}
-</div>
-
-<div>
-${fmtUTC(new Date(f.time_tag))}
-</div>
-
-<div class="small">
-${f.satellite || ""}
-</div>
-</div>
-      `;
-    }).join("");
-
-  const latest =
-    recent[0];
-
-  if(latest)
-    $("kpiFlare").textContent =
-      latest.energy;
-}
-
-function renderTable(dataset){
-
-  const rows =
-    [...dataset.data.regions]
-      .sort((a,b)=>b.risk-a.risk);
-
-  $("tableBody").innerHTML =
-    rows.map(r=>{
-
-      const color =
-        riskColor(r.risk);
-
-      const lon =
-        dataset.mode==="forecast"
-        ?
-        normalize180(
-          r.lon
-          +
-          getDeltaDays() *
-          SOLAR_ROT_DEG_PER_DAY
-        )
-        :
-        r.lon;
-
-      return `
-<tr
-data-ar="${r.number}"
-class="${
-state.selectedAR===r.number
-?
-"selected"
-:
-""
-}"
->
-
-<td>${r.number}</td>
-
-<td style="
-font-weight:900;
-color:${magneticColor(r.magType)}
-">
-${magneticShort(r.magType)}
-</td>
-
-<td>${r.area}</td>
-
-<td>${r.spots}</td>
-
-<td>
-<span
-class="badge"
-style="background:${color}"
->
-${r.risk}
-</span>
-</td>
-
-<td>${formatLon(lon)}</td>
-
-</tr>
-      `;
-    }).join("");
-
-  document
-    .querySelectorAll("tr[data-ar]")
-    .forEach(tr=>{
-
-      tr.onclick=()=>{
-
-        state.selectedAR =
-          tr.dataset.ar;
-
-        redraw();
-      };
-    });
-}
-
-function renderDetail(dataset){
-
-  const ar =
-    dataset.data.regions.find(
-      x=>x.number===state.selectedAR
-    );
-
-  if(!ar){
-
-    $("detail").textContent =
-      "ARをクリックしてください";
-
-    return;
-  }
-
-  $("detail").innerHTML = `
-<div class="detailBox">
-
-<div style="
-font-size:24px;
-font-weight:900;
-color:${magneticColor(ar.magType)}
-">
-AR${ar.number}
-</div>
-
-<div style="
-font-size:28px;
-font-weight:900;
-margin-top:4px;
-color:${magneticColor(ar.magType)}
-">
-${magneticShort(ar.magType)}
-</div>
-
-<div style="margin-top:8px">
-Risk:
-<b style="
-color:${riskColor(ar.risk)}
-">
-${ar.risk}
-</b>
-</div>
-
-<div>Area: ${ar.area}</div>
-<div>Spots: ${ar.spots}</div>
-
-<div style="margin-top:8px">
-${ar.magType}
-</div>
-
-</div>
-  `;
-}
-
-function renderTimeline(){
-
-  const tl =
-    $("timeline");
-
-  tl.innerHTML="";
-
-  for(let i=-7;i<=7;i++){
-
-    const x =
-      ((i+7)/14)*100;
-
-    const tick =
-      document.createElement("div");
-
-    tick.className="tick";
-
-    tick.style.left =
-      x + "%";
-
-    tl.appendChild(tick);
-  }
-
-  const now =
-    document.createElement("div");
-
-  now.className="nowLine";
-  now.style.left="50%";
-
-  tl.appendChild(now);
-
-  state.flares.forEach(f=>{
-
-    const d =
-      new Date(f.time_tag);
-
-    const diff =
-      (
-        d -
-        state.latest.validDate
-      ) / 86400000;
-
-    if(diff < -7 || diff > 7)
-      return;
-
-    const x =
-      ((diff+7)/14)*100;
-
-    const ev =
-      document.createElement("div");
-
-    ev.className =
-      "event " +
-      flareLetter(f.energy);
-
-    ev.style.left =
-      x + "%";
-
-    tl.appendChild(ev);
-  });
 }
 
 function setupCanvas(){
+  const c = $("sunCanvas");
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
 
-  const c =
-    $("sunCanvas");
+  c.width = Math.max(1, rect.width * dpr);
+  c.height = Math.max(1, rect.height * dpr);
 
-  const dpr =
-    window.devicePixelRatio || 1;
-
-  const rect =
-    c.getBoundingClientRect();
-
-  c.width =
-    rect.width * dpr;
-
-  c.height =
-    rect.height * dpr;
-
-  const ctx =
-    c.getContext("2d");
-
-  ctx.setTransform(
-    dpr,0,0,dpr,0,0
-  );
+  const ctx = c.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
 
   return {
-    ctx,
+    c,ctx,
     w:rect.width,
     h:rect.height,
     cx:rect.width/2,
@@ -1391,363 +524,488 @@ function setupCanvas(){
   };
 }
 
-function drawBackground(ctx,w,h,cx,cy,r){
+function project(latDeg, lonDeg, cx, cy, r){
+  const lat = latDeg * Math.PI/180;
+  const lon = lonDeg * Math.PI/180;
 
-  ctx.fillStyle="#000";
-  ctx.fillRect(0,0,w,h);
-
-  const g =
-    ctx.createRadialGradient(
-      cx-r*.25,
-      cy-r*.25,
-      r*.08,
-      cx,
-      cy,
-      r
-    );
-
-  g.addColorStop(0,"#fff9c4");
-  g.addColorStop(.42,"#ffd54f");
-  g.addColorStop(.75,"#fb8c00");
-  g.addColorStop(1,"#bf360c");
-
-  ctx.beginPath();
-  ctx.arc(cx,cy,r,0,Math.PI*2);
-
-  ctx.fillStyle=g;
-  ctx.fill();
-
-  ctx.strokeStyle=
-    "rgba(255,255,255,.3)";
-
-  ctx.lineWidth=2;
-
-  ctx.stroke();
-}
-
-function drawGrid(ctx,cx,cy,r){
-
-  ctx.strokeStyle=
-    "rgba(255,255,255,.18)";
-
-  ctx.lineWidth=1;
-
-  [-60,-30,0,30,60]
-    .forEach(lat=>{
-
-      const y =
-        cy -
-        Math.sin(lat*Math.PI/180)*r;
-
-      const scale =
-        Math.cos(lat*Math.PI/180);
-
-      ctx.beginPath();
-
-      ctx.ellipse(
-        cx,
-        y,
-        r*scale,
-        r*.1,
-        0,
-        0,
-        Math.PI*2
-      );
-
-      ctx.stroke();
-    });
-}
-
-function project(latDeg,lonDeg,cx,cy,r){
-
-  const lat =
-    latDeg*Math.PI/180;
-
-  const lon =
-    lonDeg*Math.PI/180;
-
-  const x =
-    cx +
-    r*Math.cos(lat)*Math.sin(lon);
-
-  const y =
-    cy -
-    r*Math.sin(lat);
-
-  const z =
-    Math.cos(lat)*Math.cos(lon);
+  const x = cx + r * Math.cos(lat) * Math.sin(lon);
+  const y = cy - r * Math.sin(lat);
+  const z = Math.cos(lat) * Math.cos(lon);
 
   return {x,y,z};
 }
 
-function updateTimeLabel(){
-
-  if(!state.latest) return;
-
-  const d =
-    getCurrentDate();
-
-  const jst =
-    new Date(
-      d.getTime()+9*3600000
-    );
-
-  $("timeUTC").textContent =
-    "UTC " + fmtUTC(d);
-
-  const slider =
-    Number($("timeSlider").value);
-
-  $("timeInfo").innerHTML = `
-JST ${fmtJST(jst)}<br>
-${slider<=0 ? "Observed SRS" : "Forecast Rotation"}<br>
-Base:
-${fmtUTC(state.latest.validDate)}
-  `;
-}
-
-function togglePlay(){
-
-  state.playing =
-    !state.playing;
-
-  $("playBtn").textContent =
-    state.playing
-    ?
-    "⏸ 停止"
-    :
-    "▶ 再生";
-
-  if(state.playing){
-
-    state.timer =
-      setInterval(()=>{
-
-        let v =
-          Number(
-            $("timeSlider").value
-          );
-
-        v++;
-
-        if(v>336)
-          v=-336;
-
-        $("timeSlider").value=v;
-
-        redraw();
-
-      },180);
-
-  }else{
-
-    clearInterval(state.timer);
-  }
-}
-
-function resetTime(){
-
-  $("timeSlider").value=0;
-  redraw();
-}
-
-function getDeltaDays(){
-
-  return (
-    getCurrentDate()
-    -
-    state.latest.validDate
-  ) / 86400000;
-}
-
-function latestFlareForAR(ar){
-
-  // NOAA GOESにはAR番号直接無い場合多いので、
-  // ここでは簡易拡張ポイント
-  return null;
-}
-
-function magneticShort(mag){
-
-  const m =
-    mag.toLowerCase();
-
-  if(m.includes("beta")
-    && m.includes("gamma")
-    && m.includes("delta"))
-      return "βγδ";
-
-  if(m.includes("beta")
-    && m.includes("delta"))
-      return "βδ";
-
-  if(m.includes("beta")
-    && m.includes("gamma"))
-      return "βγ";
-
-  if(m.includes("beta"))
-      return "β";
-
-  if(m.includes("alpha"))
-      return "α";
-
-  return mag;
-}
-
-function magneticColor(mag){
-
-  const m =
-    mag.toLowerCase();
-
-  if(m.includes("delta"))
-    return "#ff1744";
-
-  if(m.includes("gamma"))
-    return "#ff9800";
-
-  if(m.includes("beta"))
-    return "#ffee58";
-
-  if(m.includes("alpha"))
-    return "#4fc3f7";
-
-  return "#fff";
-}
-
-function flareLetter(c){
-
-  if(!c) return "B";
-
-  return c[0].toUpperCase();
-}
-
-function flareCssClass(c){
-
-  const l =
-    flareLetter(c);
-
-  if(l==="X") return "flareNow";
-  if(l==="M") return "flareM";
-  if(l==="C") return "flareC";
-  return "flareB";
-}
-
-function flareColor(c){
-
-  const l =
-    flareLetter(c);
-
-  if(l==="X") return "#ff1744";
-  if(l==="M") return "#ff9800";
-  if(l==="C") return "#ffee58";
-
-  return "#90a4ae";
-}
-
-function riskColor(score){
-
-  if(score>=75)
-    return $("riskSevere").value;
-
-  if(score>=55)
-    return $("riskHigh").value;
-
-  if(score>=30)
-    return $("riskMid").value;
-
-  return $("riskLow").value;
+function displayLon(ar){
+  return normalize180(ar.lon + getDeltaDays() * SOLAR_ROT_DEG_PER_DAY);
 }
 
 function normalize180(x){
-
-  return (
-    ((x+180)%360+360)%360
-  ) - 180;
+  return ((x + 180) % 360 + 360) % 360 - 180;
 }
 
-function formatLon(lon){
-
-  if(lon>=0)
-    return `W${Math.abs(lon).toFixed(1)}°`;
-
-  return `E${Math.abs(lon).toFixed(1)}°`;
+function isVisible(ar){
+  const lon = displayLon(ar);
+  return Math.abs(lon) <= 90;
 }
 
-function dateKey(d){
+function redraw(){
+  updateLegendColors();
 
-  return (
-    d.getUTCFullYear()
-    + "-"
-    + pad(d.getUTCMonth()+1)
-    + "-"
-    + pad(d.getUTCDate())
-  );
+  const {ctx,w,h,cx,cy,r} = setupCanvas();
+  ctx.clearRect(0,0,w,h);
+
+  drawBackground(ctx,w,h,cx,cy,r);
+  if($("showGrid").checked) drawGrid(ctx,cx,cy,r);
+
+  drawCompass(ctx,cx,cy,r);
+
+  if(!state.srs){
+    drawCenterText(ctx,cx,cy,"SRS未取得","最新SRSを取得してください");
+    updateTimeLabels();
+    return;
+  }
+
+  const hiddenBack = $("hideBackside").checked;
+  const regions = state.srs.regions;
+  const visible = regions.filter(ar => !hiddenBack || isVisible(ar));
+  const hidden = regions.length - visible.length;
+
+  visible
+    .sort((a,b)=>Math.abs(displayLon(b))-Math.abs(displayLon(a)))
+    .forEach(ar => drawAR(ctx, ar, cx, cy, r));
+
+  const maxRisk = regions.length ? Math.max(...regions.map(r=>r.risk)) : 0;
+  $("kpiVisible").textContent = visible.length;
+  $("kpiHidden").textContent = hidden;
+  $("kpiRisk").textContent = maxRisk;
+
+  updateTimeLabels();
+  renderDetail();
+  renderTableSelectionOnly();
 }
 
-function fmtUTC(d){
+function drawBackground(ctx,w,h,cx,cy,r){
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,0,w,h);
 
+  const halo = ctx.createRadialGradient(cx,cy,r*.75,cx,cy,r*1.25);
+  halo.addColorStop(0,"rgba(255,183,77,.28)");
+  halo.addColorStop(1,"rgba(255,183,77,0)");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(cx,cy,r*1.25,0,Math.PI*2);
+  ctx.fill();
+
+  const g = ctx.createRadialGradient(cx-r*.28,cy-r*.32,r*.05,cx,cy,r);
+  g.addColorStop(0,"#fff8b5");
+  g.addColorStop(.35,"#ffd54f");
+  g.addColorStop(.72,"#fb8c00");
+  g.addColorStop(1,"#bf360c");
+
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.clip();
+
+  for(let i=0;i<420;i++){
+    const a = Math.random()*Math.PI*2;
+    const rr = Math.sqrt(Math.random())*r*.98;
+    const x = cx + Math.cos(a)*rr;
+    const y = cy + Math.sin(a)*rr;
+    ctx.fillStyle = `rgba(255,255,255,${Math.random()*.06})`;
+    ctx.fillRect(x,y,1.2,1.2);
+  }
+  ctx.restore();
+
+  ctx.strokeStyle="rgba(255,255,255,.28)";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.stroke();
+}
+
+function drawGrid(ctx,cx,cy,r){
+  const gridColor = $("colorGrid").value;
+  ctx.strokeStyle = hexToRgba(gridColor,.22);
+  ctx.lineWidth = 1;
+
+  [-60,-30,0,30,60].forEach(lat=>{
+    const y = cy - Math.sin(lat*Math.PI/180)*r;
+    const scale = Math.cos(lat*Math.PI/180);
+    ctx.beginPath();
+    ctx.ellipse(cx,y,r*scale,r*.1,0,0,Math.PI*2);
+    ctx.stroke();
+  });
+
+  [-60,-30,0,30,60].forEach(lon=>{
+    ctx.beginPath();
+    for(let lat=-89;lat<=89;lat+=2){
+      const p = project(lat,lon,cx,cy,r);
+      if(lat === -89) ctx.moveTo(p.x,p.y);
+      else ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke();
+  });
+}
+
+function drawCompass(ctx,cx,cy,r){
+  ctx.fillStyle = "rgba(255,255,255,.88)";
+  ctx.font = "700 13px system-ui";
+  ctx.fillText("E",cx-r-25,cy+4);
+  ctx.fillText("W",cx+r+13,cy+4);
+  ctx.fillText("N",cx-5,cy-r-12);
+  ctx.fillText("S",cx-5,cy+r+24);
+}
+
+function drawCenterText(ctx,cx,cy,a,b){
+  ctx.textAlign="center";
+  ctx.fillStyle="#fff";
+  ctx.font="800 20px system-ui";
+  ctx.fillText(a,cx,cy-8);
+  ctx.fillStyle="#b8c2d9";
+  ctx.font="14px system-ui";
+  ctx.fillText(b,cx,cy+18);
+  ctx.textAlign="left";
+}
+
+function riskColor(score){
+  if(score >= 75) return $("colorSevere").value;
+  if(score >= 55) return $("colorHigh").value;
+  if(score >= 30) return $("colorMid").value;
+  return $("colorLow").value;
+}
+
+function drawAR(ctx, ar, cx, cy, r){
+  const lon = displayLon(ar);
+  const p = project(ar.lat, lon, cx, cy, r);
+  if($("hideBackside").checked && p.z < 0) return;
+
+  const limbFade = Math.max(.3, Math.min(1, p.z));
+  const selected = state.selectedAR === ar.number;
+  const color = riskColor(ar.risk);
+  const size = Math.max(6, Math.min(30, Math.sqrt(Math.max(1,ar.area))*0.78));
+
+  ctx.save();
+  ctx.globalAlpha = limbFade;
+
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,size + (selected ? 14 : 8),0,Math.PI*2);
+  ctx.fillStyle = hexToRgba(color, selected ? .42 : .25);
+  ctx.fill();
+
+  if(selected){
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,size+17,0,Math.PI*2);
+    ctx.stroke();
+  }
+
+  drawSunspotShape(ctx,p.x,p.y,size,ar,color);
+
+  if($("showMagnetic").checked){
+    drawMagneticStructure(ctx,p.x,p.y,size,ar);
+  }
+
+  if($("showLabels").checked){
+    ctx.fillStyle = $("colorLabel").value;
+    ctx.font = selected ? "900 13px system-ui" : "700 12px system-ui";
+    ctx.fillText("AR" + ar.number, p.x + size + 10, p.y - 6);
+
+    ctx.fillStyle = color;
+    ctx.font = "800 11px system-ui";
+    ctx.fillText("R" + ar.risk, p.x + size + 10, p.y + 9);
+  }
+
+  ctx.restore();
+}
+
+function drawSunspotShape(ctx,x,y,size,ar,color){
+  const mag = ar.magType.toLowerCase();
+
+  ctx.fillStyle="#050505";
+  ctx.strokeStyle=color;
+  ctx.lineWidth=2;
+
+  if(mag.includes("delta") || mag.includes("gamma")){
+    ctx.beginPath();
+    for(let i=0;i<14;i++){
+      const a = i/14*Math.PI*2;
+      const rr = size * (i%2 ? .62 : 1.18);
+      const px = x + Math.cos(a)*rr;
+      const py = y + Math.sin(a)*rr;
+      if(i===0) ctx.moveTo(px,py);
+      else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }else if(mag.includes("beta")){
+    ctx.beginPath();
+    ctx.ellipse(x,y,size*1.35,size*.78,.3,0,Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+  }else{
+    ctx.beginPath();
+    ctx.arc(x,y,size,0,Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  const n = Math.min(14, Math.max(1, ar.spots));
+  for(let i=0;i<n;i++){
+    const a = i/n*Math.PI*2;
+    const jitter = 0.55 + (i%3)*0.18;
+    ctx.beginPath();
+    ctx.arc(
+      x + Math.cos(a)*size*jitter,
+      y + Math.sin(a)*size*jitter*.58,
+      Math.max(1.7,size*.14),
+      0,
+      Math.PI*2
+    );
+    ctx.fillStyle="#000";
+    ctx.fill();
+  }
+}
+
+function drawMagneticStructure(ctx,x,y,size,ar){
+  const mag = ar.magType.toLowerCase();
+  const plus = $("colorPlus").value;
+  const minus = $("colorMinus").value;
+
+  if(mag.includes("alpha")){
+    drawPolarity(ctx,x,y-size*.15,"＋",plus,size*.75);
+    return;
+  }
+
+  drawPolarity(ctx,x-size*.55,y,"＋",plus,size*.75);
+  drawPolarity(ctx,x+size*.55,y,"−",minus,size*.75);
+
+  if(mag.includes("gamma") || mag.includes("delta")){
+    ctx.strokeStyle = hexToRgba("#ffffff",.78);
+    ctx.lineWidth = 1.5;
+    for(let i=0;i<4;i++){
+      ctx.beginPath();
+      const yy = y - size*.7 + i*size*.45;
+      ctx.moveTo(x-size*.95, yy);
+      ctx.bezierCurveTo(
+        x-size*.35, yy-size*.5,
+        x+size*.35, yy+size*.5,
+        x+size*.95, yy
+      );
+      ctx.stroke();
+    }
+  }
+
+  if(mag.includes("delta")){
+    ctx.strokeStyle = "#ff1744";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(x,y,size*1.45,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.fillStyle = "#ff1744";
+    ctx.font = `900 ${Math.max(14,size*.55)}px system-ui`;
+    ctx.fillText("!",x-size*.12,y-size*1.55);
+  }
+}
+
+function drawPolarity(ctx,x,y,text,color,size){
+  ctx.fillStyle = hexToRgba(color,.78);
+  ctx.beginPath();
+  ctx.arc(x,y,size*.45,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = "#050505";
+  ctx.font = `900 ${Math.max(11,size*.5)}px system-ui`;
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText(text,x,y);
+  ctx.textAlign="left";
+  ctx.textBaseline="alphabetic";
+}
+
+function renderTable(){
+  if(!state.srs){
+    $("table").innerHTML = "";
+    return;
+  }
+
+  const rows = [...state.srs.regions].sort((a,b)=>b.risk-a.risk);
+  $("table").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>AR</th><th>位置</th><th>表示経度</th><th>Area</th><th>Z</th><th>LL</th><th>NN</th><th>Mag</th><th>Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r=>rowHtml(r)).join("")}
+      </tbody>
+    </table>
+  `;
+
+  document.querySelectorAll("tr[data-ar]").forEach(tr=>{
+    tr.addEventListener("click",()=>{
+      state.selectedAR = tr.dataset.ar;
+      redraw();
+    });
+  });
+}
+
+function renderTableSelectionOnly(){
+  if(!state.srs) return;
+
+  document.querySelectorAll("tr[data-ar]").forEach(tr=>{
+    tr.classList.toggle("selected", tr.dataset.ar === state.selectedAR);
+    const ar = state.srs.regions.find(x=>x.number===tr.dataset.ar);
+    const lonCell = tr.querySelector(".lonCell");
+    if(ar && lonCell){
+      const lon = displayLon(ar);
+      lonCell.textContent = formatLon(lon);
+      lonCell.style.color = Math.abs(lon) <= 90 ? "#e8f5e9" : "#8f96aa";
+    }
+  });
+}
+
+function rowHtml(r){
+  const color = riskColor(r.risk);
   return `
-${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}
-${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}
-  `.trim();
-}
-
-function fmtJST(d){
-
-  return `
-${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}
-${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}
-  `.trim();
-}
-
-function pad(n){
-
-  return String(n).padStart(2,"0");
-}
-
-function hexToRgba(hex,a){
-
-  const h =
-    hex.replace("#","");
-
-  const r =
-    parseInt(h.slice(0,2),16);
-
-  const g =
-    parseInt(h.slice(2,4),16);
-
-  const b =
-    parseInt(h.slice(4,6),16);
-
-  return `
-rgba(${r},${g},${b},${a})
+    <tr data-ar="${r.number}" class="${r.number===state.selectedAR ? "selected":""}">
+      <td><b>${r.number}</b></td>
+      <td>${r.location}</td>
+      <td class="lonCell">${formatLon(displayLon(r))}</td>
+      <td>${r.area}</td>
+      <td>${r.mcintosh}</td>
+      <td>${r.length}</td>
+      <td>${r.spots}</td>
+      <td>${escapeHtml(r.magType)}</td>
+      <td><span class="badge" style="background:${color}">${r.risk}</span></td>
+    </tr>
   `;
 }
 
-function savePNG(){
+function renderDetail(){
+  if(!state.srs){
+    $("detail").textContent = "SRS未取得";
+    return;
+  }
 
-  const c =
-    $("sunCanvas");
+  const ar = state.srs.regions.find(x=>x.number === state.selectedAR);
+  if(!ar){
+    $("detail").textContent = "ARをクリックしてください。";
+    return;
+  }
 
-  const a =
-    document.createElement("a");
+  const lon = displayLon(ar);
+  const visible = Math.abs(lon) <= 90;
+  const color = riskColor(ar.risk);
 
-  a.download =
-    "solar_console.png";
+  $("detail").innerHTML = `
+    <div class="detailBox">
+      <div style="font-size:22px;font-weight:900;color:${color}">AR${ar.number}</div>
+      <div>元位置: <b>${ar.location}</b></div>
+      <div>現在表示経度: <b>${formatLon(lon)}</b> / ${visible ? "太陽面表側" : "裏側・端外"}</div>
+    </div>
+    <div class="detailBox">
+      <div>Risk: <b style="color:${color}">${ar.risk}</b></div>
+      <div>Area: <b>${ar.area}</b></div>
+      <div>黒点数 NN: <b>${ar.spots}</b></div>
+      <div>長さ LL: <b>${ar.length}</b></div>
+    </div>
+    <div class="detailBox">
+      <div>McIntosh: <b>${ar.mcintosh}</b></div>
+      <div>磁場分類: <b>${escapeHtml(ar.magType)}</b></div>
+      <div class="small">${magExplanation(ar.magType)}</div>
+    </div>
+  `;
+}
 
-  a.href =
-    c.toDataURL("image/png");
+function magExplanation(magType){
+  const m = magType.toLowerCase();
+  if(m.includes("delta")) return "Deltaを含むため、反対極性が近接した複雑構造として赤枠で強調。";
+  if(m.includes("gamma")) return "Gammaを含むため、単純な2極ではない乱れた磁場構造として曲線を表示。";
+  if(m.includes("beta")) return "Betaは＋極と−極を持つ双極構造として表示。";
+  if(m.includes("alpha")) return "Alphaは単純な単極性領域として表示。";
+  return "磁場分類が不明または簡略表記。";
+}
 
+function updateTimeLabels(){
+  if(!state.srs){
+    $("mainTime").textContent = "---";
+    $("subTime").textContent = "SRS未取得";
+    return;
+  }
+
+  const d = getSliderDate();
+  const jst = new Date(d.getTime() + 9*3600000);
+  const deltaH = Number($("timeSlider").value) * 0.5;
+  const sign = deltaH >= 0 ? "+" : "−";
+  const absH = Math.abs(deltaH);
+  const dd = Math.floor(absH / 24);
+  const hh = Math.floor(absH % 24);
+  const mm = absH % 1 ? "30" : "00";
+
+  $("mainTime").textContent = `UTC ${fmtUTC(d)}`;
+  $("subTime").innerHTML =
+    `JST ${fmtJST(jst)}<br>` +
+    `SRS基準: ${fmtUTC(state.srs.validDate)} UTC<br>` +
+    `基準差: ${sign}${dd}日 ${hh}:${mm}`;
+}
+
+function updateLegendColors(){
+  $("legLow").style.background = $("colorLow").value;
+  $("legMid").style.background = $("colorMid").value;
+  $("legHigh").style.background = $("colorHigh").value;
+  $("legSevere").style.background = $("colorSevere").value;
+}
+
+function fmtUTC(d){
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
+function fmtJST(d){
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
+function pad(n){ return String(n).padStart(2,"0"); }
+
+function formatLon(lon){
+  if(lon >= 0) return `W${Math.abs(lon).toFixed(1)}°`;
+  return `E${Math.abs(lon).toFixed(1)}°`;
+}
+
+function hexToRgba(hex,a){
+  const h = hex.replace("#","");
+  const r = parseInt(h.slice(0,2),16);
+  const g = parseInt(h.slice(2,4),16);
+  const b = parseInt(h.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function savePng(){
+  const c = $("sunCanvas");
+  const a = document.createElement("a");
+  a.download = "srs_sunspot_rotation.png";
+  a.href = c.toDataURL("image/png");
   a.click();
 }
 
-window.addEventListener(
-  "resize",
-  ()=>redraw()
-);
+window.addEventListener("resize",()=>redraw());
 
-initialize();
-
+loadLatestSRS();
 </script>
 
 </body>
