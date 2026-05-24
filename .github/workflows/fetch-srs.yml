@@ -1,1 +1,42 @@
+name: Fetch NOAA SRS Archive
 
+on:
+  schedule:
+    # NOAA SRSは0030 UTCごろ更新想定。少し待って0040 UTCに取得。
+    - cron: "40 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-srs
+  cancel-in-progress: false
+
+jobs:
+  fetch-srs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Fetch latest SRS
+        run: node scripts/fetch-srs.js
+
+      - name: Commit and push
+        run: |
+          if [[ -n "$(git status --porcelain data/srs)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/srs
+            git commit -m "Update NOAA SRS archive"
+            git push
+          else
+            echo "No SRS changes."
+          fi
