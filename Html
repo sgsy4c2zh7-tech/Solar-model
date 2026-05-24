@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Solar API Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background:#111; color:#eee; padding:20px; }
+    button { padding:10px 16px; margin:6px; cursor:pointer; }
+    .card { background:#1e1e1e; padding:14px; margin-top:12px; border-radius:10px; }
+    pre { white-space:pre-wrap; word-break:break-word; background:#000; padding:12px; border-radius:8px; }
+    .ok { color:#7CFC00; }
+    .warn { color:#ffd166; }
+    .bad { color:#ff6b6b; }
+  </style>
+</head>
+<body>
+
+<h1>Solar API Test</h1>
+
+<button onclick="loadSolarRegions()">黒点・活動領域API</button>
+<button onclick="loadXray()">X線フラックスAPI</button>
+<button onclick="loadProton()">SEP/プロトンAPI</button>
+<button onclick="loadAll()">全部取得</button>
+
+<div id="summary" class="card">ここに概要が出ます。</div>
+<div id="output" class="card"><pre>JSON表示エリア</pre></div>
+
+<script>
+const API = {
+  regions: "https://services.swpc.noaa.gov/json/solar_regions.json",
+  xray: "https://services.swpc.noaa.gov/json/goes/primary/xrays-6-hour.json",
+  proton: "https://services.swpc.noaa.gov/json/goes/primary/integral-protons-6-hour.json"
+};
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("HTTP Error: " + res.status);
+  return await res.json();
+}
+
+function showRaw(title, data) {
+  document.getElementById("output").innerHTML =
+    `<h2>${title}</h2><pre>${JSON.stringify(data.slice ? data.slice(-20) : data, null, 2)}</pre>`;
+}
+
+function setSummary(html) {
+  document.getElementById("summary").innerHTML = html;
+}
+
+async function loadSolarRegions() {
+  try {
+    const data = await fetchJson(API.regions);
+    const latest = data.slice(-10);
+
+    const html = latest.map(r => `
+      <div>
+        <b>NOAA AR ${r.region || "?"}</b>
+        / lat: ${r.latitude || "?"}
+        / lon: ${r.longitude || "?"}
+        / area: ${r.area || "?"}
+        / class: ${r.mcintosh_class || "?"}
+      </div>
+    `).join("");
+
+    setSummary(`<h2>黒点・活動領域</h2>${html}`);
+    showRaw("solar_regions.json", data);
+  } catch (e) {
+    setSummary(`<span class="bad">黒点API取得失敗: ${e.message}</span>`);
+  }
+}
+
+async function loadXray() {
+  try {
+    const data = await fetchJson(API.xray);
+    const latest = data[data.length - 1];
+
+    setSummary(`
+      <h2>GOES X-ray</h2>
+      <div>時刻: ${latest.time_tag}</div>
+      <div>衛星: ${latest.satellite}</div>
+      <div>波長: ${latest.energy}</div>
+      <div>X線Flux: <span class="ok">${latest.flux}</span> W/m²</div>
+    `);
+
+    showRaw("xrays-6-hour.json", data);
+  } catch (e) {
+    setSummary(`<span class="bad">X線API取得失敗: ${e.message}</span>`);
+  }
+}
+
+async function loadProton() {
+  try {
+    const data = await fetchJson(API.proton);
+
+    const p10 = data
+      .filter(d => String(d.energy).includes(">=10 MeV"))
+      .at(-1);
+
+    let level = "S0 通常";
+    let cls = "ok";
+
+    if (p10 && p10.flux >= 10) {
+      level = "S1以上：SEP発生レベル";
+      cls = "bad";
+    } else if (p10 && p10.flux >= 1) {
+      level = "注意：プロトン上昇気味";
+      cls = "warn";
+    }
+
+    setSummary(`
+      <h2>SEP / GOES Proton</h2>
+      <div>時刻: ${p10?.time_tag || "不明"}</div>
+      <div>>=10MeV Flux: <span class="${cls}">${p10?.flux ?? "不明"}</span> pfu</div>
+      <div>判定: <span class="${cls}">${level}</span></div>
+    `);
+
+    showRaw("integral-protons-6-hour.json", data);
+  } catch (e) {
+    setSummary(`<span class="bad">プロトンAPI取得失敗: ${e.message}</span>`);
+  }
+}
+
+async function loadAll() {
+  setSummary("取得中...");
+  try {
+    const [regions, xray, proton] = await Promise.all([
+      fetchJson(API.regions),
+      fetchJson(API.xray),
+      fetchJson(API.proton)
+    ]);
+
+    const latestX = xray.at(-1);
+    const latestP10 = proton
+      .filter(d => String(d.energy).includes(">=10 MeV"))
+      .at(-1);
+
+    const latestRegions = regions.slice(-5);
+
+    setSummary(`
+      <h2>総合表示</h2>
+      <h3>黒点・活動領域</h3>
+      ${latestRegions.map(r => `
+        <div>AR ${r.region || "?"} / lat ${r.latitude || "?"} / lon ${r.longitude || "?"}</div>
+      `).join("")}
+
+      <h3>X線</h3>
+      <div>${latestX?.time_tag || "?"} / ${latestX?.energy || "?"} / ${latestX?.flux ?? "?"} W/m²</div>
+
+      <h3>SEP</h3>
+      <div>>=10MeV: ${latestP10?.flux ?? "?"} pfu</div>
+    `);
+
+    document.getElementById("output").innerHTML =
+      `<h2>取得成功</h2><pre>${JSON.stringify({ latestRegions, latestX, latestP10 }, null, 2)}</pre>`;
+
+  } catch (e) {
+    setSummary(`<span class="bad">一括取得失敗: ${e.message}</span>`);
+  }
+}
+</script>
+
+</body>
+</html>
