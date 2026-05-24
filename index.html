@@ -59,7 +59,6 @@ button{
 }
 
 button:hover{filter:brightness(1.12)}
-
 button.primary{background:#0277bd}
 button.red{background:#8e2430}
 
@@ -245,6 +244,7 @@ input[type=range]{
 .flareDot.M{background:#ff9800;box-shadow:0 0 10px #ff9800}
 .flareDot.C{background:#ffee58}
 .flareDot.B{background:#90a4ae}
+.flareDot.A{background:#607d8b}
 
 .srsDot{
   position:absolute;
@@ -273,6 +273,7 @@ input[type=range]{
 .flareM{border-left:5px solid #ff9800}
 .flareC{border-left:5px solid #ffee58}
 .flareB{border-left:5px solid #90a4ae}
+.flareA{border-left:5px solid #607d8b}
 
 .flareTitle{
   font-size:17px;
@@ -385,6 +386,7 @@ pre{
   .layout{
     grid-template-columns:1fr;
   }
+
   .kpis{
     grid-template-columns:1fr 1fr;
   }
@@ -447,7 +449,7 @@ pre{
         <div class="value" id="kpiRisk">0</div>
       </div>
       <div class="kpi">
-        <div class="label">Current X-ray</div>
+        <div class="label">Flare NOW</div>
         <div class="value" id="kpiFlare">-</div>
       </div>
     </div>
@@ -487,6 +489,7 @@ pre{
       <label><input id="showGrid" type="checkbox" checked onchange="redraw()"> 緯度・経度グリッド</label>
       <label><input id="showLabels" type="checkbox" checked onchange="redraw()"> AR番号・磁場分類・Risk表示</label>
       <label><input id="showMagFX" type="checkbox" checked onchange="redraw()"> γ/δ 補助エフェクト</label>
+      <label><input id="showFlareNow" type="checkbox" checked onchange="redraw()"> 太陽面FLARE NOW表示</label>
       <label><input id="hideBack" type="checkbox" checked onchange="redraw()"> 裏側のARを非表示</label>
     </div>
   </section>
@@ -535,6 +538,8 @@ const SOLAR_ROT_DEG_PER_DAY = 13.2;
 const HALF_HOUR_MS = 30 * 60 * 1000;
 const DAY_MS = 86400000;
 
+let visualPulseTimer = null;
+
 let state = {
   srsHistory:{},
   srsList:[],
@@ -569,6 +574,7 @@ async function initialize(){
     }
 
     redraw();
+    startVisualPulse();
 
     const archiveCount = state.srsList.length;
     $("status").textContent =
@@ -589,6 +595,7 @@ async function loadSRSHistory(){
 
   try{
     const res = await fetch(LOCAL_SRS_INDEX + "?t=" + Date.now(), {cache:"no-store"});
+
     if(res.ok){
       const index = await res.json();
 
@@ -625,6 +632,7 @@ async function loadSRSHistory(){
 
         if(state.srsList.length){
           state.srsList.sort((a,b)=>a.validDate-b.validDate);
+
           state.latest =
             state.srsList.find(x => dateKey(x.validDate).replaceAll("-","") === (latestEntry.date || "").slice(0,8)) ||
             state.srsList[state.srsList.length - 1];
@@ -641,6 +649,7 @@ async function loadSRSHistory(){
   if(loadedLocal) return;
 
   const latestRes = await fetch(CURRENT_SRS_URL + "?t=" + Date.now(), {cache:"no-store"});
+
   if(!latestRes.ok){
     throw new Error("最新SRS取得失敗 HTTP " + latestRes.status);
   }
@@ -669,6 +678,7 @@ function addSRS(srs){
   state.srsHistory[key] = srs;
 
   const exists = state.srsList.some(x => dateKey(x.validDate) === key);
+
   if(!exists){
     state.srsList.push(srs);
   }
@@ -689,7 +699,7 @@ async function loadFlares(){
     state.flares = jobs[0].value
       .map(normalizeFlare)
       .filter(f => f && f.maxClass)
-      .sort((a,b)=>a.peakTime-b.peakTime);
+      .sort((a,b)=>(a.peakTime || a.timeTag || 0) - (b.peakTime || b.timeTag || 0));
   }
 
   if(jobs[1].status === "fulfilled" && Array.isArray(jobs[1].value) && jobs[1].value.length){
@@ -704,15 +714,26 @@ function normalizeFlare(f){
     f.max_class ||
     f.maxClass ||
     f.current_class ||
+    f.currentClass ||
     f.class ||
     f.flare_class ||
+    f.flareClass ||
+    f.energy ||
+    "";
+
+  const currentClass =
+    f.current_class ||
+    f.currentClass ||
+    f.observed_flux_class ||
+    f.flux_class ||
+    maxClass ||
     "";
 
   const beginTime =
-    parseDateSafe(f.begin_time || f.start_time || f.startTime || f.time_tag);
+    parseDateSafe(f.begin_time || f.start_time || f.startTime || f.beginTime || f.time_tag);
 
   const peakTime =
-    parseDateSafe(f.max_time || f.peak_time || f.peakTime || f.time_tag || f.begin_time);
+    parseDateSafe(f.max_time || f.peak_time || f.peakTime || f.maxTime || f.time_tag || f.begin_time);
 
   const endTime =
     parseDateSafe(f.end_time || f.endTime || null);
@@ -721,20 +742,21 @@ function normalizeFlare(f){
     f.active_region ||
     f.activeRegion ||
     f.noaa_ar ||
+    f.noaaAR ||
     f.region ||
     f.NOAA_AR ||
     "";
 
   return {
     raw:f,
-    maxClass:String(maxClass),
-    currentClass:f.current_class || "",
+    maxClass:String(maxClass || ""),
+    currentClass:String(currentClass || maxClass || ""),
     beginTime,
     peakTime,
     endTime,
     satellite:f.satellite || "",
     activeRegion:String(activeRegion || ""),
-    timeTag:parseDateSafe(f.time_tag || f.max_time || f.begin_time)
+    timeTag:parseDateSafe(f.time_tag || f.max_time || f.begin_time || f.timeTag)
   };
 }
 
@@ -819,6 +841,7 @@ function parseIssuedDate(s){
   if(!isNaN(d)) return d;
 
   const m = s.match(/(\d{4})Z\s+on\s+(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})/i);
+
   if(m){
     const hhmm = m[1];
     const day = Number(m[2]);
@@ -873,6 +896,7 @@ function parseValidDate(validRaw, issuedDate){
   if(!isNaN(d)) return d;
 
   const m = validRaw.match(/(\d{1,2})\/(\d{4})Z/i);
+
   if(m && issuedDate){
     const day = Number(m[1]);
     const hhmm = m[2];
@@ -901,11 +925,12 @@ function parseValidDate(validRaw, issuedDate){
 
 function parseLocation(loc){
   const m = loc.match(/^([NS])(\d{2})([EW])(\d{2})$/);
+
   if(!m) return {lat:0, lon:0};
 
   const lat = (m[1] === "N" ? 1 : -1) * Number(m[2]);
 
-  // 表示上は W を右側、E を左側に置く
+  // 表示上は W を右側、E を左側
   const lon = (m[3] === "W" ? 1 : -1) * Number(m[4]);
 
   return {lat, lon};
@@ -918,12 +943,14 @@ function calcRisk(area, spots, mcintosh, magType){
   score += Math.min(20, spots * 2);
 
   const mag = magType.toLowerCase();
+
   if(mag.includes("alpha")) score += 5;
   if(mag.includes("beta")) score += 15;
   if(mag.includes("gamma")) score += 25;
   if(mag.includes("delta")) score += 35;
 
   const z = mcintosh.toUpperCase();
+
   if(z.startsWith("D")) score += 8;
   if(z.startsWith("E")) score += 14;
   if(z.startsWith("F")) score += 20;
@@ -956,6 +983,7 @@ function getCurrentDate(){
   }
 
   const halfHours = Number($("timeSlider").value);
+
   return new Date(state.latest.validDate.getTime() + halfHours * HALF_HOUR_MS);
 }
 
@@ -1007,13 +1035,13 @@ function findNearestSRS(targetDate){
 
   for(const srs of state.srsList){
     const diff = Math.abs(srs.validDate - targetDate);
+
     if(diff < bestAbs){
       bestAbs = diff;
       best = srs;
     }
   }
 
-  // 日次SRSなので、36時間以内なら採用
   if(best && bestAbs <= 36 * 3600000){
     return best;
   }
@@ -1023,6 +1051,7 @@ function findNearestSRS(targetDate){
 
 function renderEmpty(){
   const {ctx,w,h,cx,cy,r} = setupCanvas();
+
   ctx.clearRect(0,0,w,h);
   drawBackground(ctx,w,h,cx,cy,r);
   drawCenterText(ctx,cx,cy,"SRS未取得","最新データ取得を押してください");
@@ -1062,6 +1091,10 @@ function renderSolarDisk(dataset){
     visible.push(ar);
     drawAR(ctx, ar, p, lon);
   });
+
+  if($("showFlareNow").checked){
+    drawFlareNowOverlay(ctx, cx, cy, r, dataset);
+  }
 
   $("kpiVisible").textContent = visible.length;
   $("kpiHidden").textContent = hidden;
@@ -1110,6 +1143,7 @@ function drawAR(ctx, ar, p, lon){
   }
 
   const flare = latestFlareForAR(ar.number);
+
   if(flare){
     ctx.strokeStyle = flareColor(flare.maxClass);
     ctx.lineWidth = 3;
@@ -1149,6 +1183,152 @@ function drawAR(ctx, ar, p, lon){
   ctx.restore();
 }
 
+function drawFlareNowOverlay(ctx, cx, cy, r, dataset){
+  const flare = getNowFlare(dataset.targetDate);
+
+  if(!flare) return;
+
+  const cls = flare.currentClass || flare.maxClass || "-";
+  const letter = flareLetter(cls);
+  const color = flareColor(cls);
+
+  ctx.save();
+
+  const t = Date.now() / 1000;
+  const pulse = 0.5 + 0.5 * Math.sin(t * 5);
+
+  // M級以上なら太陽外周を発光
+  if(letter === "M" || letter === "X"){
+    ctx.globalAlpha = 0.35 + pulse * 0.35;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = letter === "X" ? 9 : 6;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 8 + pulse * 8, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // X級なら太陽面全体に薄い赤フィルタ
+  if(letter === "X"){
+    ctx.globalAlpha = 0.16 + pulse * 0.14;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+
+  // AR番号が分かる場合は、そのAR上にFLARE NOW
+  const arNo = flare.activeRegion ? String(flare.activeRegion).replace(/^0+/,"") : "";
+
+  const ar = arNo
+    ? dataset.data.regions.find(x => String(x.number).replace(/^0+/,"") === arNo)
+    : null;
+
+  if(ar){
+    const lon = computeDisplayLon(ar, dataset);
+    const p = project(ar.lat, lon, cx, cy, r);
+
+    if(!$("hideBack").checked || p.z >= 0){
+      drawFlareBurstAt(ctx, p.x, p.y, color, cls, letter);
+      ctx.restore();
+      return;
+    }
+  }
+
+  // AR不明なら太陽面上部に大きく表示
+  drawFlareBannerOnSun(ctx, cx, cy, r, color, cls, letter, pulse);
+
+  ctx.restore();
+}
+
+function drawFlareBurstAt(ctx, x, y, color, cls, letter){
+  const t = Date.now() / 1000;
+  const pulse = 0.5 + 0.5 * Math.sin(t * 6);
+
+  const base = letter === "X" ? 42 : letter === "M" ? 34 : 26;
+
+  ctx.save();
+
+  ctx.globalAlpha = 0.35 + pulse * 0.45;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = letter === "X" ? 5 : 4;
+
+  for(let i=0;i<3;i++){
+    ctx.beginPath();
+    ctx.arc(x, y, base + i * 12 + pulse * 8, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // 爆発マーク
+  ctx.globalAlpha = 0.9;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+
+  for(let i=0;i<12;i++){
+    const a = i / 12 * Math.PI * 2;
+    const r1 = base * 0.45;
+    const r2 = base * (0.9 + pulse * 0.35);
+
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(a)*r1, y + Math.sin(a)*r1);
+    ctx.lineTo(x + Math.cos(a)*r2, y + Math.sin(a)*r2);
+    ctx.stroke();
+  }
+
+  // ラベル
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "rgba(0,0,0,.72)";
+  roundRect(ctx, x - 58, y - 68, 116, 40, 10);
+  ctx.fill();
+
+  ctx.fillStyle = color;
+  ctx.font = "900 15px system-ui";
+  ctx.textAlign = "center";
+  ctx.fillText("FLARE NOW", x, y - 49);
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "900 19px system-ui";
+  ctx.fillText(cls, x, y - 27);
+
+  ctx.textAlign = "left";
+  ctx.restore();
+}
+
+function drawFlareBannerOnSun(ctx, cx, cy, r, color, cls, letter, pulse){
+  const w = 230;
+  const h = 62;
+  const x = cx - w / 2;
+  const y = cy - r * 0.72;
+
+  ctx.save();
+
+  ctx.globalAlpha = 0.88;
+  ctx.fillStyle = "rgba(0,0,0,.72)";
+  roundRect(ctx, x, y, w, h, 14);
+  ctx.fill();
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = letter === "X" ? 4 : 3;
+  ctx.globalAlpha = 0.65 + pulse * 0.35;
+  roundRect(ctx, x, y, w, h, 14);
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = color;
+  ctx.font = "900 17px system-ui";
+  ctx.textAlign = "center";
+  ctx.fillText("FLARE NOW", cx, y + 24);
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "900 25px system-ui";
+  ctx.fillText(cls, cx, y + 52);
+
+  ctx.textAlign = "left";
+  ctx.restore();
+}
+
 function drawSunspotShape(ctx,x,y,size,ar){
   const mag = ar.magType.toLowerCase();
 
@@ -1158,22 +1338,27 @@ function drawSunspotShape(ctx,x,y,size,ar){
 
   if(mag.includes("gamma") || mag.includes("delta")){
     ctx.beginPath();
+
     for(let i=0;i<14;i++){
       const a = i/14*Math.PI*2;
       const rr = size * (i % 2 ? 0.62 : 1.18);
       const px = x + Math.cos(a)*rr;
       const py = y + Math.sin(a)*rr;
+
       if(i===0) ctx.moveTo(px,py);
       else ctx.lineTo(px,py);
     }
+
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+
   }else if(mag.includes("beta")){
     ctx.beginPath();
     ctx.ellipse(x,y,size*1.35,size*.78,.3,0,Math.PI*2);
     ctx.fill();
     ctx.stroke();
+
   }else{
     ctx.beginPath();
     ctx.arc(x,y,size,0,Math.PI*2);
@@ -1182,6 +1367,7 @@ function drawSunspotShape(ctx,x,y,size,ar){
   }
 
   const n = Math.min(14, Math.max(1, ar.spots));
+
   for(let i=0;i<n;i++){
     const a = i/n*Math.PI*2;
     const jitter = 0.55 + (i%3)*0.18;
@@ -1312,10 +1498,10 @@ function renderDetail(dataset){
       flare
       ? `<div class="detailBox">
           <div><b>Associated Flare</b></div>
-          <div style="font-size:20px;font-weight:900;color:${flareColor(flare.maxClass)}">${flare.maxClass}</div>
-          <div>${fmtUTC(flare.peakTime)} UTC</div>
+          <div style="font-size:20px;font-weight:900;color:${flareColor(flare.maxClass)}">${escapeHtml(flare.maxClass)}</div>
+          <div>${flare.peakTime ? fmtUTC(flare.peakTime) + " UTC" : "peak unknown"}</div>
         </div>`
-      : `<div class="detailBox">このGOESフレアJSONには通常AR番号が入らないため、AR紐づけはデータがある場合のみ表示します。</div>`
+      : `<div class="detailBox">GOESフレアJSONにAR番号がある場合のみ、AR紐づけ表示します。</div>`
     }
   `;
 }
@@ -1324,16 +1510,34 @@ function renderFlarePanel(){
   const nowDiv = $("flareNow");
   const listDiv = $("flareList");
 
-  if(state.latestXray){
+  const nowFlare = getNowFlare(getCurrentDate());
+
+  if(nowFlare){
+    const cls = nowFlare.currentClass || nowFlare.maxClass || "-";
+    $("kpiFlare").textContent = cls;
+
+    nowDiv.innerHTML = `
+      <div class="nowBox">
+        <div class="small">FLARE NOW</div>
+        <div style="font-size:30px;font-weight:900;color:${flareColor(cls)}">${escapeHtml(cls)}</div>
+        <div class="small">
+          Peak: ${nowFlare.peakTime ? fmtUTC(nowFlare.peakTime) + " UTC" : "-"}<br>
+          Begin: ${nowFlare.beginTime ? fmtUTC(nowFlare.beginTime) + " UTC" : "-"}<br>
+          End: ${nowFlare.endTime ? fmtUTC(nowFlare.endTime) + " UTC" : "-"}<br>
+          ${nowFlare.activeRegion ? "AR: " + escapeHtml(nowFlare.activeRegion) + "<br>" : ""}
+          SAT: ${escapeHtml(nowFlare.satellite || "-")}
+        </div>
+      </div>
+    `;
+  }else if(state.latestXray){
     const cls = state.latestXray.currentClass || state.latestXray.maxClass || "-";
     $("kpiFlare").textContent = cls;
 
     nowDiv.innerHTML = `
       <div class="nowBox">
-        <div class="small">Current X-ray Class</div>
+        <div class="small">Latest X-ray / Flare</div>
         <div style="font-size:28px;font-weight:900;color:${flareColor(cls)}">${escapeHtml(cls)}</div>
         <div class="small">time_tag: ${state.latestXray.timeTag ? fmtUTC(state.latestXray.timeTag) + " UTC" : "unknown"}</div>
-        <div class="small">latest flare max: ${escapeHtml(state.latestXray.maxClass || "-")}</div>
       </div>
     `;
   }else{
@@ -1393,6 +1597,7 @@ function renderTimeline(){
 
   state.srsList.forEach(srs => {
     const diff = (srs.validDate - state.latest.validDate) / DAY_MS;
+
     if(diff < -7 || diff > 7) return;
 
     const dot = document.createElement("div");
@@ -1406,6 +1611,7 @@ function renderTimeline(){
     if(!f.peakTime) return;
 
     const diff = (f.peakTime - state.latest.validDate) / DAY_MS;
+
     if(diff < -7 || diff > 7) return;
 
     const ev = document.createElement("div");
@@ -1438,6 +1644,7 @@ function updateTimeLabel(){
   $("timeUTC").textContent = "UTC " + fmtUTC(d);
 
   let cls = "modePill";
+
   if(dataset && dataset.mode === "forecast") cls += " modeForecast";
   if(dataset && dataset.mode === "gap") cls += " modeGap";
 
@@ -1499,10 +1706,10 @@ function drawBackground(ctx,w,h,cx,cy,r){
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Limb shading
   const limb = ctx.createRadialGradient(cx,cy,r*.68,cx,cy,r);
   limb.addColorStop(0,"rgba(0,0,0,0)");
   limb.addColorStop(1,"rgba(0,0,0,.22)");
+
   ctx.fillStyle = limb;
   ctx.beginPath();
   ctx.arc(cx,cy,r,0,Math.PI*2);
@@ -1527,6 +1734,7 @@ function drawGrid(ctx,cx,cy,r){
 
     for(let lat=-89;lat<=89;lat+=2){
       const p = project(lat,lon,cx,cy,r);
+
       if(lat === -89) ctx.moveTo(p.x,p.y);
       else ctx.lineTo(p.x,p.y);
     }
@@ -1568,9 +1776,46 @@ function project(latDeg, lonDeg, cx, cy, r){
   return {x,y,z};
 }
 
+function getNowFlare(targetDate){
+  const now = targetDate || new Date();
+  const candidates = [];
+
+  for(const f of state.flares){
+    if(!f) continue;
+
+    const begin = f.beginTime;
+    const peak = f.peakTime;
+    const end = f.endTime;
+
+    if(begin && end && now >= begin && now <= end){
+      candidates.push(f);
+      continue;
+    }
+
+    const base = peak || f.timeTag || begin;
+
+    // peak/time_tagから60分以内は「今起きた」扱い
+    if(base && Math.abs(now - base) <= 60 * 60 * 1000){
+      candidates.push(f);
+    }
+  }
+
+  if(!candidates.length && state.latestXray){
+    const cls = state.latestXray.currentClass || state.latestXray.maxClass || "";
+    const letter = flareLetter(cls);
+
+    // 最新X-rayがM/X級ならAR不明のNOWとして出す
+    if(letter === "M" || letter === "X"){
+      return state.latestXray;
+    }
+  }
+
+  candidates.sort((a,b) => flareRank(b.maxClass || b.currentClass) - flareRank(a.maxClass || a.currentClass));
+
+  return candidates[0] || null;
+}
+
 function latestFlareForAR(arNumber){
-  // xray-flares JSONにAR番号が入る場合だけ紐づける拡張ポイント。
-  // 通常はAR番号なしなので null になる。
   const target = String(arNumber).replace(/^0+/,"");
 
   const candidates = state.flares.filter(f => {
@@ -1613,15 +1858,19 @@ function magExplanation(mag){
   if(m.includes("beta") && m.includes("gamma") && m.includes("delta")){
     return "βγδ：双極性に加えて磁極配置が複雑で、Delta構造も含む。強いフレアに注意する表示。";
   }
+
   if(m.includes("beta") && m.includes("delta")){
     return "βδ：双極性で、反対極性が近接するDelta構造を含む。";
   }
+
   if(m.includes("beta") && m.includes("gamma")){
     return "βγ：双極性だが磁極配置が複雑。";
   }
+
   if(m.includes("beta")){
     return "β：正負の磁極を持つ双極性領域。";
   }
+
   if(m.includes("alpha")){
     return "α：単純な単極性領域。";
   }
@@ -1640,14 +1889,45 @@ function flareColor(c){
   if(l === "X") return "#ff1744";
   if(l === "M") return "#ff9800";
   if(l === "C") return "#ffee58";
-  return "#90a4ae";
+  if(l === "B") return "#90a4ae";
+
+  return "#607d8b";
+}
+
+function flareRank(cls){
+  const s = String(cls || "").trim().toUpperCase();
+  const letter = s[0] || "A";
+  const num = Number(s.slice(1)) || 0;
+
+  const base = {
+    A:0,
+    B:10,
+    C:20,
+    M:30,
+    X:40
+  }[letter] ?? 0;
+
+  return base + num;
 }
 
 function riskColor(score){
   if(score >= 75) return $("riskSevere").value;
   if(score >= 55) return $("riskHigh").value;
   if(score >= 30) return $("riskMid").value;
+
   return $("riskLow").value;
+}
+
+function startVisualPulse(){
+  if(visualPulseTimer) return;
+
+  visualPulseTimer = setInterval(() => {
+    const flare = getNowFlare(getCurrentDate());
+
+    if(flare && $("showFlareNow").checked){
+      redraw();
+    }
+  }, 500);
 }
 
 function togglePlay(){
@@ -1711,11 +1991,13 @@ function dateKey(d){
 
 function fmtUTC(d){
   if(!d || isNaN(d)) return "unknown";
+
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
 }
 
 function fmtJST(d){
   if(!d || isNaN(d)) return "unknown";
+
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
 }
 
@@ -1725,7 +2007,9 @@ function pad(n){
 
 function parseDateSafe(x){
   if(!x) return null;
+
   const d = new Date(x);
+
   return isNaN(d) ? null : d;
 }
 
@@ -1759,6 +2043,20 @@ function hexToRgba(hex,a){
   return `rgba(${r},${g},${b},${a})`;
 }
 
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 function escapeHtml(s){
   return String(s ?? "").replace(/[&<>"']/g, c => ({
     "&":"&amp;",
@@ -1779,6 +2077,7 @@ $("sunCanvas").addEventListener("click", ev => {
 
   for(const ar of state.drawnAR){
     const d = Math.hypot(ar.x - x, ar.y - y);
+
     if(d < ar.r && d < bestDist){
       best = ar;
       bestDist = d;
