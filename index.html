@@ -2,80 +2,132 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Solar Situation Viewer</title>
+<title>Solar Active Region Viewer</title>
 <style>
-  body{margin:0;background:#101014;color:#eee;font-family:system-ui,sans-serif}
-  header{padding:16px 20px;background:#181820;border-bottom:1px solid #333}
-  button{margin:4px;padding:10px 14px;border:0;border-radius:8px;cursor:pointer}
-  main{padding:16px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
-  .card{background:#1b1b24;border:1px solid #333;border-radius:14px;padding:14px}
-  .sunbox{position:relative;width:100%;aspect-ratio:1/1;background:#000;border-radius:12px;overflow:hidden}
-  canvas,img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-  pre{white-space:pre-wrap;background:#08080a;padding:10px;border-radius:8px;max-height:260px;overflow:auto}
-  .small{font-size:13px;color:#bbb}
+body{
+  margin:0;
+  background:#0c0c10;
+  color:#eee;
+  font-family:system-ui,sans-serif;
+}
+header{
+  padding:16px 20px;
+  background:#181820;
+  border-bottom:1px solid #333;
+}
+button{
+  margin:4px;
+  padding:10px 14px;
+  border:0;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+}
+main{padding:16px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
+  gap:16px;
+}
+.card{
+  background:#1a1a22;
+  border:1px solid #333;
+  border-radius:14px;
+  padding:14px;
+}
+.sunbox{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  background:#000;
+  border-radius:12px;
+  overflow:hidden;
+}
+canvas,img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+pre{
+  white-space:pre-wrap;
+  background:#07070a;
+  padding:10px;
+  border-radius:8px;
+  max-height:300px;
+  overflow:auto;
+}
+.bad{color:#ff5252}
+.warn{color:#ffb74d}
+.ok{color:#9ccc65}
+.small{font-size:13px;color:#bbb;line-height:1.5}
+.legend span{
+  display:inline-block;
+  margin-right:10px;
+}
 </style>
 </head>
 <body>
 
 <header>
-  <h2>Solar Situation Viewer</h2>
+  <h2>Solar Active Region / Flare Risk Viewer</h2>
   <button onclick="loadAll()">全部取得</button>
   <button onclick="loadRegions()">黒点・活動領域</button>
   <button onclick="loadSynoptic()">Solar Synoptic Map</button>
   <button onclick="loadCoronalHole()">コロナホール画像</button>
-  <button onclick="loadCmeSep()">CME/SEP候補</button>
 </header>
 
 <main>
-  <div class="grid">
+<div class="grid">
 
-    <section class="card">
-      <h3>① 黒点・活動領域 太陽面</h3>
-      <div class="sunbox">
-        <canvas id="sunCanvas"></canvas>
-      </div>
-      <div id="regionText" class="small"></div>
-    </section>
-
-    <section class="card">
-      <h3>② コロナホール 太陽面</h3>
-      <div class="sunbox">
-        <img id="chImage" alt="">
-      </div>
-      <div id="chText" class="small"></div>
-    </section>
-
-    <section class="card">
-      <h3>③ CME/SEP候補 太陽面</h3>
-      <div class="sunbox">
-        <img id="cmeImage" alt="">
-        <canvas id="eventCanvas"></canvas>
-      </div>
-      <div id="eventText" class="small"></div>
-    </section>
-
+<section class="card">
+  <h3>① 黒点・活動領域 太陽面</h3>
+  <div class="sunbox">
+    <canvas id="sunCanvas"></canvas>
   </div>
+  <div class="legend small">
+    <span style="color:#ffee58">β：注意</span>
+    <span style="color:#ff9800">βγ：中</span>
+    <span style="color:#ff5252">βγδ：高</span>
+  </div>
+  <div id="regionText" class="small"></div>
+</section>
 
-  <section class="card" style="margin-top:16px">
-    <h3>Raw Output</h3>
-    <pre id="raw">ここにAPI結果を表示</pre>
-  </section>
+<section class="card">
+  <h3>② Solar Synoptic Map</h3>
+  <div class="sunbox">
+    <img id="synopticImage" alt="">
+  </div>
+  <div class="small">NOAAのSynoptic Map表示用</div>
+</section>
+
+<section class="card">
+  <h3>③ コロナホール画像</h3>
+  <div class="sunbox">
+    <img id="chImage" alt="">
+  </div>
+  <div id="chText" class="small"></div>
+</section>
+
+</div>
+
+<section class="card" style="margin-top:16px">
+  <h3>Raw Output</h3>
+  <pre id="raw">ここにAPI結果を表示</pre>
+</section>
 </main>
 
 <script>
 const API = {
   regions: "https://services.swpc.noaa.gov/json/solar_regions.json",
-  xray: "https://services.swpc.noaa.gov/json/goes/primary/xray-flares-7-day.json",
-  proton: "https://services.swpc.noaa.gov/json/goes/primary/integral-protons-6-hour.json",
   synoptic: "https://services.swpc.noaa.gov/images/synoptic-map.jpg",
-  suvi195: "https://services.swpc.noaa.gov/images/animations/suvi/primary/195/latest.png",
   suviMap: "https://services.swpc.noaa.gov/images/animations/suvi/primary/map/latest.png"
 };
 
 async function fetchJson(url){
   const r = await fetch(url);
-  if(!r.ok) throw new Error(r.status);
+  if(!r.ok) throw new Error("HTTP " + r.status);
   return await r.json();
 }
 
@@ -83,128 +135,276 @@ function raw(obj){
   document.getElementById("raw").textContent = JSON.stringify(obj,null,2);
 }
 
-function drawBaseSun(canvasId){
+function resizeCanvas(canvasId){
   const c = document.getElementById(canvasId);
-  const dpr = devicePixelRatio || 1;
+  const dpr = window.devicePixelRatio || 1;
   const rect = c.getBoundingClientRect();
   c.width = rect.width * dpr;
   c.height = rect.height * dpr;
   const ctx = c.getContext("2d");
-  ctx.scale(dpr,dpr);
-  const w = rect.width, h = rect.height;
-  const cx=w/2, cy=h/2, r=Math.min(w,h)*0.39;
-
-  ctx.clearRect(0,0,w,h);
-  ctx.beginPath();
-  ctx.arc(cx,cy,r,0,Math.PI*2);
-  ctx.fillStyle="#f7b733";
-  ctx.fill();
-  ctx.strokeStyle="#fff3";
-  ctx.lineWidth=2;
-  ctx.stroke();
-
-  ctx.fillStyle="#fff";
-  ctx.font="12px system-ui";
-  ctx.fillText("N",cx-4,cy-r-8);
-  ctx.fillText("S",cx-4,cy+r+18);
-  ctx.fillText("E",cx-r-20,cy+4);
-  ctx.fillText("W",cx+r+10,cy+4);
-
-  return {ctx,w,h,cx,cy,r};
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {c,ctx,w:rect.width,h:rect.height};
 }
 
-function latLonToXY(lat, lon, cx, cy, r){
-  // 簡易投影：longitude -90〜+90を太陽面左右に配置
-  const x = cx + (lon / 90) * r;
-  const y = cy - (lat / 90) * r;
+function drawSolarDisk(canvasId){
+  const {ctx,w,h} = resizeCanvas(canvasId);
+  const cx = w/2;
+  const cy = h/2;
+  const r = Math.min(w,h) * 0.39;
+
+  ctx.clearRect(0,0,w,h);
+
+  const grad = ctx.createRadialGradient(cx-r*0.25,cy-r*0.25,r*0.1,cx,cy,r);
+  grad.addColorStop(0,"#fff176");
+  grad.addColorStop(0.45,"#ffb300");
+  grad.addColorStop(1,"#e65100");
+
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(255,255,255,0.25)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  drawGrid(ctx,cx,cy,r);
+
+  ctx.fillStyle="#fff";
+  ctx.font="13px system-ui";
+  ctx.fillText("N",cx-4,cy-r-10);
+  ctx.fillText("S",cx-4,cy+r+22);
+  ctx.fillText("E",cx-r-24,cy+4);
+  ctx.fillText("W",cx+r+12,cy+4);
+
+  return {ctx,cx,cy,r,w,h};
+}
+
+function drawGrid(ctx,cx,cy,r){
+  ctx.strokeStyle="rgba(255,255,255,0.22)";
+  ctx.lineWidth=1;
+
+  // 緯度線
+  [-60,-30,0,30,60].forEach(lat=>{
+    const y = cy - Math.sin(lat*Math.PI/180)*r;
+    const scale = Math.cos(lat*Math.PI/180);
+    ctx.beginPath();
+    ctx.ellipse(cx,y,r*scale,r*0.12,0,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.fillStyle="rgba(255,255,255,0.45)";
+    ctx.font="10px system-ui";
+    ctx.fillText(lat+"°",cx+r*0.72,y);
+  });
+
+  // 経度線
+  [-60,-30,0,30,60].forEach(lon=>{
+    ctx.beginPath();
+    for(let lat=-89; lat<=89; lat+=3){
+      const p = projectSolar(lat,lon,cx,cy,r);
+      if(lat===-89) ctx.moveTo(p.x,p.y);
+      else ctx.lineTo(p.x,p.y);
+    }
+    ctx.stroke();
+  });
+}
+
+// 簡易直交投影
+// lon: 中央子午線からの相対経度として扱う
+function projectSolar(latDeg, lonDeg, cx, cy, r){
+  const lat = latDeg * Math.PI/180;
+  const lon = lonDeg * Math.PI/180;
+
+  const x = cx + r * Math.cos(lat) * Math.sin(lon);
+  const y = cy - r * Math.sin(lat);
+
   return {x,y};
+}
+
+function getFieldClass(ar){
+  const raw = [
+    ar.mag_class,
+    ar.magnetic_class,
+    ar.magnetic_classification,
+    ar.beta_gamma_delta,
+    ar.class_type,
+    ar.mcintosh_class
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  if(raw.includes("delta") || raw.includes("δ")) return "BGD";
+  if(raw.includes("beta-gamma-delta") || raw.includes("βγδ")) return "BGD";
+  if(raw.includes("beta-gamma") || raw.includes("βγ")) return "BG";
+  if(raw.includes("beta") || raw.includes("β")) return "B";
+  return "UNKNOWN";
+}
+
+function colorByRisk(score){
+  if(score >= 80) return "#ff1744";
+  if(score >= 55) return "#ff9100";
+  if(score >= 30) return "#ffee58";
+  return "#9ccc65";
+}
+
+function calcFlareRisk(ar){
+  const area = Number(ar.area || ar.spot_area || ar.corrected_area || 0);
+  const spots = Number(ar.number_spots || ar.spot_count || ar.num_spots || 1);
+  const field = getFieldClass(ar);
+  const mc = String(ar.mcintosh_class || "").toUpperCase();
+
+  let score = 0;
+
+  score += Math.min(35, area / 20);
+  score += Math.min(20, spots * 2);
+
+  if(field === "B") score += 15;
+  if(field === "BG") score += 35;
+  if(field === "BGD") score += 50;
+
+  if(mc.includes("D")) score += 10;
+  if(mc.includes("E")) score += 15;
+  if(mc.includes("F")) score += 20;
+  if(mc.includes("K")) score += 10;
+
+  return Math.min(100, Math.round(score));
+}
+
+function drawSunspotShape(ctx,x,y,ar,risk){
+  const area = Number(ar.area || ar.spot_area || ar.corrected_area || 80);
+  const spots = Number(ar.number_spots || ar.spot_count || ar.num_spots || 1);
+  const field = getFieldClass(ar);
+  const size = Math.max(6, Math.min(28, Math.sqrt(area) * 0.8));
+  const color = colorByRisk(risk);
+
+  // 外側：リスク色
+  ctx.beginPath();
+  ctx.arc(x,y,size+5,0,Math.PI*2);
+  ctx.fillStyle = color + "55";
+  ctx.fill();
+
+  // 黒点群の形
+  ctx.fillStyle="#111";
+  ctx.strokeStyle=color;
+  ctx.lineWidth=2;
+
+  if(field === "BGD"){
+    // 複雑なδ型っぽくギザギザ
+    ctx.beginPath();
+    for(let i=0;i<10;i++){
+      const a = i/10*Math.PI*2;
+      const rr = size * (i%2 ? 0.65 : 1.15);
+      const px = x + Math.cos(a)*rr;
+      const py = y + Math.sin(a)*rr;
+      if(i===0) ctx.moveTo(px,py);
+      else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  } else if(field === "BG"){
+    // βγ：楕円＋複数核
+    ctx.beginPath();
+    ctx.ellipse(x,y,size*1.3,size*0.8,0.5,0,Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+  } else {
+    // 単純型
+    ctx.beginPath();
+    ctx.arc(x,y,size,0,Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // 小黒点を周囲に追加
+  const n = Math.min(8, Math.max(1, spots));
+  for(let i=0;i<n;i++){
+    const a = i/n*Math.PI*2;
+    const rr = size * 1.2;
+    ctx.beginPath();
+    ctx.arc(
+      x + Math.cos(a)*rr,
+      y + Math.sin(a)*rr*0.6,
+      Math.max(2,size*0.18),
+      0,
+      Math.PI*2
+    );
+    ctx.fillStyle="#050505";
+    ctx.fill();
+  }
+
+  // ラベル
+  ctx.fillStyle="#fff";
+  ctx.font="12px system-ui";
+  ctx.fillText("AR"+(ar.region || "?"),x+size+8,y-6);
+
+  ctx.fillStyle=color;
+  ctx.font="11px system-ui";
+  ctx.fillText("Risk "+risk,x+size+8,y+8);
 }
 
 async function loadRegions(){
   const data = await fetchJson(API.regions);
-  const latest = data.filter(x => x.region).slice(-30);
 
-  const {ctx,cx,cy,r} = drawBaseSun("sunCanvas");
+  const regions = data
+    .filter(x => x.region)
+    .slice(-40);
 
-  latest.forEach(ar=>{
+  const {ctx,cx,cy,r} = drawSolarDisk("sunCanvas");
+
+  const output = regions.map(ar=>{
     const lat = Number(ar.latitude || ar.lat || 0);
-    const lon = Number(ar.longitude || ar.lon || 0);
-    const area = Number(ar.area || ar.spot_area || 80);
-    const p = latLonToXY(lat, lon, cx, cy, r);
 
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,Math.max(4,Math.sqrt(area)/2),0,Math.PI*2);
-    ctx.fillStyle="#111";
-    ctx.fill();
-    ctx.strokeStyle="#ff4040";
-    ctx.stroke();
+    // SWPC側のlongitude表記が絶対経度の場合があるため、
+    // 表示用には -90〜+90 に丸める。
+    let lon = Number(ar.longitude || ar.lon || 0);
+    if(lon > 180) lon = lon - 360;
+    if(lon > 90) lon = 90;
+    if(lon < -90) lon = -90;
 
-    ctx.fillStyle="#fff";
-    ctx.font="12px system-ui";
-    ctx.fillText("AR"+ar.region,p.x+7,p.y-7);
+    const p = projectSolar(lat,lon,cx,cy,r);
+    const risk = calcFlareRisk(ar);
+    drawSunspotShape(ctx,p.x,p.y,ar,risk);
+
+    return {
+      region: ar.region,
+      latitude: lat,
+      longitude_display: lon,
+      area: ar.area || ar.spot_area || ar.corrected_area || null,
+      spots: ar.number_spots || ar.spot_count || ar.num_spots || null,
+      mcintosh_class: ar.mcintosh_class || null,
+      field_class_estimated: getFieldClass(ar),
+      flare_risk_score: risk
+    };
   });
+
+  const high = output.filter(x=>x.flare_risk_score>=55);
 
   document.getElementById("regionText").innerHTML =
-    `活動領域数: <b>${latest.length}</b><br>` +
-    latest.map(x=>`AR${x.region} lat:${x.latitude ?? "?"} lon:${x.longitude ?? "?"} class:${x.mcintosh_class ?? "?"}`).join("<br>");
+    `<br>活動領域数: <b>${output.length}</b><br>` +
+    `高リスク候補: <b class="${high.length ? "bad":"ok"}">${high.length}</b><br><br>` +
+    output
+      .sort((a,b)=>b.flare_risk_score-a.flare_risk_score)
+      .map(x=>`AR${x.region} / Risk ${x.flare_risk_score} / ${x.mcintosh_class ?? "class?"} / ${x.field_class_estimated}`)
+      .join("<br>");
 
-  raw({solar_regions:latest});
+  raw(output);
 }
 
-async function loadSynoptic(){
-  document.getElementById("chImage").src = API.synoptic + "?t=" + Date.now();
-  document.getElementById("chText").innerHTML =
-    "Solar Synoptic Mapを表示。活動領域、コロナホール、磁気中性線の確認用。";
+function loadSynoptic(){
+  document.getElementById("synopticImage").src = API.synoptic + "?t=" + Date.now();
 }
 
-async function loadCoronalHole(){
+function loadCoronalHole(){
   document.getElementById("chImage").src = API.suviMap + "?t=" + Date.now();
   document.getElementById("chText").innerHTML =
-    "SUVI Thematic Mapを表示。凡例上の Coronal Hole 領域をコロナホールとして確認。";
-}
-
-async function loadCmeSep(){
-  document.getElementById("cmeImage").src = API.suvi195 + "?t=" + Date.now();
-
-  const [flares, protons] = await Promise.all([
-    fetchJson(API.xray),
-    fetchJson(API.proton)
-  ]);
-
-  const latestP10 = protons.filter(x => String(x.energy).includes(">=10 MeV")).at(-1);
-  const recentFlares = flares.slice(-10);
-
-  const {ctx,cx,cy,r} = drawBaseSun("eventCanvas");
-
-  recentFlares.forEach((f,i)=>{
-    const angle = (i/recentFlares.length)*Math.PI*2;
-    const x = cx + Math.cos(angle)*r*0.45;
-    const y = cy + Math.sin(angle)*r*0.45;
-
-    ctx.beginPath();
-    ctx.arc(x,y,10,0,Math.PI*2);
-    ctx.fillStyle="rgba(255,0,80,.75)";
-    ctx.fill();
-
-    ctx.fillStyle="#fff";
-    ctx.font="12px system-ui";
-    ctx.fillText(f.class_type || "flare",x+12,y);
-  });
-
-  const sepLevel = latestP10 && latestP10.flux >= 10 ? "S1以上の可能性" : "S0〜注意";
-  document.getElementById("eventText").innerHTML =
-    `>=10MeV Proton: <b>${latestP10?.flux ?? "不明"}</b> pfu<br>` +
-    `SEP判定: <b>${sepLevel}</b><br>` +
-    `直近フレア数: ${recentFlares.length}`;
-
-  raw({recent_flares:recentFlares, latest_proton_10MeV:latestP10});
+    "SUVI Thematic Map表示。コロナホール領域の確認用。次段階で画像処理により面積・中心位置を抽出可能。";
 }
 
 async function loadAll(){
   await loadRegions();
-  await loadCoronalHole();
-  await loadCmeSep();
+  loadSynoptic();
+  loadCoronalHole();
 }
 </script>
+
 </body>
 </html>
