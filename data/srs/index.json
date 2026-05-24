@@ -1,0 +1,15 @@
+{
+  "latest": "20260524.txt",
+  "latest_valid_iso": "2026-05-24T00:00:00.000Z",
+  "count": 1,
+  "entries": [
+    {
+      "file": "20260524.txt",
+      "date": "20260524",
+      "valid_iso": "2026-05-24T00:00:00.000Z",
+      "issued_raw": "2026 May 24 0030 UTC",
+      "valid_raw": "23/2400Z",
+      "regions": 6
+    }
+  ]
+}
