@@ -1,0 +1,24 @@
+:Product: Solar Region Summary
+:Issued: 2026 Jun 08 0030 UTC
+# Prepared jointly by the U.S. Dept. of Commerce, NOAA,
+# Space Weather Prediction Center and the U.S. Air Force.
+#
+Joint USAF/NOAA Solar Region Summary
+SRS Number 159 Issued at 0030Z on 08 Jun 2026
+Report compiled from data received at SWO on 07 Jun
+I.  Regions with Sunspots.  Locations Valid at 07/2400Z 
+Nmbr Location  Lo  Area  Z   LL   NN Mag Type
+4455 N15W75   090  0110 Hsx  03   01 Alpha
+4456 N17W48   063  0070 Dai  08   14 Beta-Gamma
+4458 S05W62   077  0230 Dso  07   05 Beta
+4459 N14W18   033  0040 Cso  08   06 Beta
+4461 S21E05   010  0010 Bxo  03   02 Beta
+4462 N15E05   010  0070 Dsi  08   10 Beta
+4463 N17E37   338  0040 Hsx  02   01 Alpha
+4464 S12E38   337  0060 Dai  06   05 Beta
+IA. H-alpha Plages without Spots.  Locations Valid at 07/2400Z Jun
+Nmbr  Location  Lo
+None
+II. Regions Due to Return 08 Jun to 10 Jun
+Nmbr Lat    Lo
+4443 S16    247
