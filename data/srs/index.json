@@ -1,7 +1,7 @@
 {
-  "latest": "20260701.txt",
-  "latest_valid_iso": "2026-07-01T00:00:00.000Z",
-  "count": 38,
+  "latest": "20260702.txt",
+  "latest_valid_iso": "2026-07-02T00:00:00.000Z",
+  "count": 39,
   "entries": [
     {
       "file": "20260524.txt",
@@ -306,6 +306,14 @@
       "issued_raw": "2026 Jul 01 0030 UTC",
       "valid_raw": "30/2400Z",
       "regions": 5
+    },
+    {
+      "file": "20260702.txt",
+      "date": "20260702",
+      "valid_iso": "2026-07-02T00:00:00.000Z",
+      "issued_raw": "2026 Jul 02 0030 UTC",
+      "valid_raw": "01/2400Z",
+      "regions": 4
     }
   ]
 }
