@@ -1,0 +1,22 @@
+:Product: Solar Region Summary
+:Issued: 2026 Jul 25 0030 UTC
+# Prepared jointly by the U.S. Dept. of Commerce, NOAA,
+# Space Weather Prediction Center and the U.S. Air Force.
+#
+Joint USAF/NOAA Solar Region Summary
+SRS Number 206 Issued at 0030Z on 25 Jul 2026
+Report compiled from data received at SWO on 24 Jul
+I.  Regions with Sunspots.  Locations Valid at 24/2400Z 
+Nmbr Location  Lo  Area  Z   LL   NN Mag Type
+4489 S07W81   194  0060 Hsx  02   02 Alpha
+4492 N15E06   107  0290 Hhx  05   09 Alpha
+4493 N05W46   159  0420 Eki  13   15 Beta-Gamma
+4494 S04E27   086  0110 Cao  05   07 Beta-Delta
+4495 S03E14   099  0010 Axx  02   02 Alpha
+4496 N05E59   054  0030 Cso  05   06 Beta
+IA. H-alpha Plages without Spots.  Locations Valid at 24/2400Z Jul
+Nmbr  Location  Lo
+4491  S12W48   161
+II. Regions Due to Return 25 Jul to 27 Jul
+Nmbr Lat    Lo
+4485 S10    010
