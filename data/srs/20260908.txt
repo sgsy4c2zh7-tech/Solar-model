@@ -1,0 +1,24 @@
+:Product: Solar Region Summary
+:Issued: 2026 Sep 08 0030 UTC
+# Prepared jointly by the U.S. Dept. of Commerce, NOAA,
+# Space Weather Prediction Center and the U.S. Air Force.
+#
+Joint USAF/NOAA Solar Region Summary
+SRS Number 251 Issued at 0030Z on 08 Sep 2026
+Report compiled from data received at SWO on 07 Sep
+I.  Regions with Sunspots.  Locations Valid at 07/2400Z 
+Nmbr Location  Lo  Area  Z   LL   NN Mag Type
+4521 N09W27   265  0080 Hsx  02   03 Alpha
+4523 N10W16   254  0010 Axx  04   05 Alpha
+4524 N12E13   225  0070 Hax  03   03 Alpha
+4525 N10E27   211  0010 Axx  01   02 Alpha
+4527 N03E33   205  0210 Hsx  03   02 Alpha
+4528 S11E51   187  0100 Hsx  02   01 Alpha
+4529 N12E50   188  0090 Hax  02   01 Alpha
+4530 N19E19   219  0030 Dri  05   06 Beta
+IA. H-alpha Plages without Spots.  Locations Valid at 07/2400Z Sep
+Nmbr  Location  Lo
+4526  S02E28   210
+II. Regions Due to Return 08 Sep to 10 Sep
+Nmbr Lat    Lo
+4516 N15    133
