@@ -1,0 +1,24 @@
+:Product: Solar Region Summary
+:Issued: 2026 Sep 23 0030 UTC
+# Prepared jointly by the U.S. Dept. of Commerce, NOAA,
+# Space Weather Prediction Center and the U.S. Air Force.
+#
+Joint USAF/NOAA Solar Region Summary
+SRS Number 266 Issued at 0030Z on 23 Sep 2026
+Report compiled from data received at SWO on 22 Sep
+I.  Regions with Sunspots.  Locations Valid at 22/2400Z 
+Nmbr Location  Lo  Area  Z   LL   NN Mag Type
+4533 S13E36   004  0050 Hsx  02   01 Alpha
+4534 N11W35   075  0050 Dai  06   13 Beta
+4535 N12E44   356  0030 Hsx  03   02 Alpha
+4536 N03W13   053  0060 Dsi  05   10 Beta
+4537 N08W26   066  0030 Dri  03   05 Beta-Delta
+4538 N11W23   063  0020 Cri  03   07 Beta
+4539 S09E26   014  0020 Cro  04   05 Beta
+4540 S12W52   092  0010 Bxo  03   03 Beta
+IA. H-alpha Plages without Spots.  Locations Valid at 22/2400Z Sep
+Nmbr  Location  Lo
+4532  S07W82   122
+II. Regions Due to Return 23 Sep to 25 Sep
+Nmbr Lat    Lo
+4521 N09    283
