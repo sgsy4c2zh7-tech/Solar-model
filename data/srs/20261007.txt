@@ -1,0 +1,23 @@
+:Product: Solar Region Summary
+:Issued: 2026 Oct 07 0030 UTC
+# Prepared jointly by the U.S. Dept. of Commerce, NOAA,
+# Space Weather Prediction Center and the U.S. Air Force.
+#
+Joint USAF/NOAA Solar Region Summary
+SRS Number 280 Issued at 0030Z on 07 Oct 2026
+Report compiled from data received at SWO on 06 Oct
+I.  Regions with Sunspots.  Locations Valid at 06/2400Z 
+Nmbr Location  Lo  Area  Z   LL   NN Mag Type
+4545 N19W06   221  0050 Dao  04   12 Beta
+4547 N15W59   274  0030 Cri  06   08 Beta
+4548 S12E25   190  0040 Hsx  01   01 Alpha
+4549 N10E01   214  0060 Dac  05   16 Beta-Gamma-Delta
+IA. H-alpha Plages without Spots.  Locations Valid at 06/2400Z Oct
+Nmbr  Location  Lo
+None
+II. Regions Due to Return 07 Oct to 09 Oct
+Nmbr Lat    Lo
+4541 S05    113
+4540 S12    107
+4534 N11    093
+4537 N07    089
