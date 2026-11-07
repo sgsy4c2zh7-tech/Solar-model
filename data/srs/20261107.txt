@@ -1,0 +1,23 @@
+:Product: Solar Region Summary
+:Issued: 2026 Nov 07 0030 UTC
+# Prepared jointly by the U.S. Dept. of Commerce, NOAA,
+# Space Weather Prediction Center and the U.S. Air Force.
+#
+Joint USAF/NOAA Solar Region Summary
+SRS Number 311 Issued at 0030Z on 07 Nov 2026
+Report compiled from data received at SWO on 06 Nov
+I.  Regions with Sunspots.  Locations Valid at 06/2400Z 
+Nmbr Location  Lo  Area  Z   LL   NN Mag Type
+4565 N13W18   184  0050 Cso  04   03 Beta
+4566 S06E19   147  0240 Dac  10   22 Beta-Gamma-Delta
+4567 N18W70   236  0040 Cso  03   03 Beta
+4568 S08E40   126  0010 Hrx  01   01 Alpha
+4569 S06E07   159  0010 Axx  01   01 Alpha
+4570 S13E59   107  0010 Axx  01   01 Alpha
+IA. H-alpha Plages without Spots.  Locations Valid at 06/2400Z Nov
+Nmbr  Location  Lo
+4564  N01W40   206
+II. Regions Due to Return 07 Nov to 09 Nov
+Nmbr Lat    Lo
+4560 N13    067
+4561 S11    045
